@@ -493,6 +493,10 @@ web/dist/
 web/.vite/
 *.tsbuildinfo
 
+# pnpm is the only supported package manager for web/
+package-lock.json
+yarn.lock
+
 # Local environment overrides (may contain secrets)
 .env
 .env.local

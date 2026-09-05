@@ -1,0 +1,4 @@
+# pnpm configuration (pnpm 10+). Install scripts run only for packages listed here.
+# esbuild needs its postinstall to fetch the platform binary Vite depends on.
+allowBuilds:
+  esbuild: true

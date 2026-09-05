@@ -18,7 +18,7 @@ Guidance for AI coding agents working in this repository. Read this first.
 podman machine start          # macOS only, once per boot
 ./database/scripts/db-up.sh   # PostgreSQL on localhost:5432
 cd api/PastaList.Api && dotnet run --launch-profile http   # http://localhost:5192
-cd web && npm install && npm run dev                       # http://localhost:5173
+cd web && pnpm install && pnpm dev                         # http://localhost:5173
 ```
 
 The API applies EF migrations and seeds demo data automatically in Development.
@@ -26,8 +26,8 @@ The API applies EF migrations and seeds demo data automatically in Development.
 ## Verification commands — run these before declaring work done
 
 ```bash
-cd web  && npm run lint && npm run build   # type-check + lint + bundle
-cd api  && dotnet build                    # must be 0 warnings, 0 errors
+cd web  && pnpm lint && pnpm build   # type-check + lint + bundle
+cd api  && dotnet build              # must be 0 warnings, 0 errors
 ```
 
 There is no test suite yet. If you add testable logic, add tests
@@ -49,6 +49,8 @@ There is no test suite yet. If you add testable logic, add tests
 
 ### Web (`web`)
 
+- **pnpm only.** Never run `npm` or `yarn` here; `pnpm-lock.yaml` is the single lockfile
+  and a `package-lock.json` must never reappear. Add dependencies with `pnpm add <pkg>`.
 - Server state lives **only** in RTK Query (`src/features/api/pastaListApi.ts`).
   Never mirror API data into a slice.
 - Client/UI state lives in slices under `src/features/<feature>/`. `uiSlice` holds theme,
@@ -88,3 +90,5 @@ There is no test suite yet. If you add testable logic, add tests
 - Podman must be running (`podman machine start`) before any database script works.
 - `Npgsql.EntityFrameworkCore.PostgreSQL` must stay on `9.x`; `10.x` requires .NET 10.
 - Auto-migration on startup is Development-only by design.
+- pnpm blocks install scripts by default. A package that needs one must be allowed in
+  `web/pnpm-workspace.yaml` under `allowBuilds` (this is why `esbuild` is listed).

@@ -5,6 +5,15 @@ description: React, MUI and Redux conventions for the Pasta List frontend.
 
 # Frontend instructions
 
+## Package management
+
+- **pnpm only.** `pnpm install`, `pnpm add <pkg>`, `pnpm add -D <pkg>`, `pnpm dev`,
+  `pnpm lint`, `pnpm build`. Never run `npm` or `yarn` in this folder.
+- `pnpm-lock.yaml` is the only lockfile and belongs in git. If a `package-lock.json`
+  shows up, delete it.
+- pnpm does not run install scripts unless the package is listed under `allowBuilds`
+  in `pnpm-workspace.yaml`. Add entries there only when a dependency genuinely needs it.
+
 ## State
 
 - Server data: RTK Query only, defined in `src/features/api/pastaListApi.ts`.

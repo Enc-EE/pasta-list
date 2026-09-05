@@ -9,7 +9,8 @@ verification commands. It is the source of truth; this file only summarises it.*
 
 ## Non-negotiables
 
-- Verify every change: `cd web && npm run lint && npm run build` and `cd api && dotnet build`.
+- Verify every change: `cd web && pnpm lint && pnpm build` and `cd api && dotnet build`.
+- The frontend uses **pnpm**, never npm or yarn.
 - Server state belongs in RTK Query, UI state in a Redux slice. Never duplicate.
 - API endpoints return DTOs from `Contracts/`, never EF entities.
 - Schema changes need an EF migration; `database/` holds no table DDL.

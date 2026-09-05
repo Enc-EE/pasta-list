@@ -11,6 +11,7 @@ A shopping list app. React frontend, C# API, PostgreSQL.
 ## Prerequisites
 
 - Node.js 22+
+- pnpm 10+ (`corepack enable` then `corepack use pnpm@latest`, or `brew install pnpm`)
 - .NET SDK 9
 - Podman (on macOS: `podman machine init` once, then `podman machine start`)
 - `dotnet tool install --global dotnet-ef`
@@ -28,8 +29,8 @@ dotnet run --launch-profile http
 
 # 3. web
 cd web
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Then open http://localhost:5173. The Vite dev server proxies `/api` to the API,
@@ -41,7 +42,7 @@ In VS Code you can instead run the task **dev: full stack**.
 
 ```bash
 cd api && dotnet build
-cd web && npm run lint && npm run build
+cd web && pnpm lint && pnpm build
 ```
 
 Or the VS Code task **verify: all** (default build task).
