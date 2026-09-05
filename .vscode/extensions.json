@@ -1,0 +1,13 @@
+{
+    "recommendations": [
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-ossdata.vscode-pgsql",
+        "humao.rest-client",
+        "editorconfig.editorconfig",
+        "github.copilot",
+        "github.copilot-chat"
+    ]
+}

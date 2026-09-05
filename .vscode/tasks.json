@@ -1,0 +1,79 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "db: up",
+            "type": "shell",
+            "command": "./database/scripts/db-up.sh",
+            "problemMatcher": []
+        },
+        {
+            "label": "db: down",
+            "type": "shell",
+            "command": "./database/scripts/db-down.sh",
+            "problemMatcher": []
+        },
+        {
+            "label": "api: build",
+            "type": "shell",
+            "command": "dotnet build",
+            "options": {
+                "cwd": "${workspaceFolder}/api"
+            },
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "api: watch",
+            "type": "shell",
+            "command": "dotnet watch run --launch-profile http",
+            "options": {
+                "cwd": "${workspaceFolder}/api/PastaList.Api"
+            },
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "web: dev",
+            "type": "shell",
+            "command": "npm run dev",
+            "options": {
+                "cwd": "${workspaceFolder}/web"
+            },
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "web: verify",
+            "type": "shell",
+            "command": "npm run lint && npm run build",
+            "options": {
+                "cwd": "${workspaceFolder}/web"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "dev: full stack",
+            "dependsOn": [
+                "db: up",
+                "api: watch",
+                "web: dev"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "verify: all",
+            "dependsOn": [
+                "api: build",
+                "web: verify"
+            ],
+            "dependsOrder": "sequence",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

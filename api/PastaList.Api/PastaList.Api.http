@@ -1,0 +1,43 @@
+@PastaList.Api_HostAddress = http://localhost:5192
+
+### Health probe
+GET {{PastaList.Api_HostAddress}}/health
+Accept: application/json
+
+### Get all lists
+GET {{PastaList.Api_HostAddress}}/api/lists
+Accept: application/json
+
+### Create a list
+# @name createList
+POST {{PastaList.Api_HostAddress}}/api/lists
+Content-Type: application/json
+
+{
+  "name": "Weekly groceries",
+  "description": "Everything for the week"
+}
+
+### Get a single list
+@listId = {{createList.response.body.id}}
+GET {{PastaList.Api_HostAddress}}/api/lists/{{listId}}
+Accept: application/json
+
+### Add an item
+# @name createItem
+POST {{PastaList.Api_HostAddress}}/api/lists/{{listId}}/items
+Content-Type: application/json
+
+{
+  "name": "Penne rigate",
+  "quantity": 2,
+  "unit": "pack",
+  "category": "Pasta",
+  "note": null
+}
+
+### Toggle an item
+PATCH {{PastaList.Api_HostAddress}}/api/lists/{{listId}}/items/{{createItem.response.body.id}}/toggle
+
+### Delete the list
+DELETE {{PastaList.Api_HostAddress}}/api/lists/{{listId}}

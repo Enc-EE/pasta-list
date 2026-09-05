@@ -1,0 +1,23 @@
+{
+    "editor.formatOnSave": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bin": true,
+        "**/obj": true,
+        "**/dist": true
+    },
+    "eslint.workingDirectories": [
+        "web"
+    ],
+    "typescript.tsdk": "web/node_modules/typescript/lib",
+    "dotnet.defaultSolution": "api/PastaList.sln",
+    "chat.instructionsFilesLocations": {
+        ".github/instructions": true
+    },
+    "chat.promptFilesLocations": {
+        ".github/prompts": true
+    },
+    "github.copilot.chat.codeGeneration.useInstructionFiles": true
+}

@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "API (http)",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/api/PastaList.Api/PastaList.Api.csproj",
+            "launchConfigurationId": "http"
+        },
+        {
+            "name": "Web (Chrome)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:5173",
+            "webRoot": "${workspaceFolder}/web/src",
+            "preLaunchTask": "web: dev"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Full stack",
+            "configurations": [
+                "API (http)",
+                "Web (Chrome)"
+            ]
+        }
+    ]
+}

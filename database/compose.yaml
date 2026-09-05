@@ -1,0 +1,25 @@
+# Local development database for Pasta List.
+# Usage: podman compose -f database/compose.yaml up -d
+services:
+  db:
+    image: docker.io/library/postgres:17-alpine
+    container_name: pastalist-db
+    environment:
+      POSTGRES_DB: pastalist
+      POSTGRES_USER: pastalist
+      # Local development password only - never reuse outside of localhost.
+      POSTGRES_PASSWORD: pastalist_dev
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pastalist-data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro,z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pastalist -d pastalist"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pastalist-data:
