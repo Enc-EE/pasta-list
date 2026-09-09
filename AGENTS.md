@@ -66,6 +66,11 @@ There is no test suite yet. If you add testable logic, add tests
   Production serves the built SPA from the API's `wwwroot`; use relative `/api` URLs.
 - The API and SPA are one origin in production. Do not add CORS as a substitute for
   same-origin hosting.
+- Authentication uses the `__Host-pastalist.session` HttpOnly cookie. Never put
+  session tokens or login codes in frontend state, localStorage, or API responses.
+- Login codes are HMAC-hashed, single-use, short-lived, and rate-limited. Production
+  requires stable `Auth__CodeHashKey`, SMTP settings, and persistent Data Protection keys.
+- Unsafe `/api` requests must pass same-origin/allowed-origin CSRF validation.
 
 ### Database (`database/`)
 

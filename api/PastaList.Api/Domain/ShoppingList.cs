@@ -16,5 +16,4 @@ public class ShoppingList
 
     public ICollection<ShoppingListItem> Items { get; set; } = new List<ShoppingListItem>();
 
-    // TODO: add OwnerId once authentication is introduced.
 }

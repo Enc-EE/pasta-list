@@ -69,3 +69,15 @@ Do not add MVC controllers, AutoMapper, or a repository layer over `DbContext`.
 - `EnableSensitiveDataLogging`, auto-migration and seeding stay Development-only.
 - The browser and API are same-origin in production; do not reintroduce CORS for the
   BFF. Any future cross-origin integration needs an explicit security review.
+
+## Authentication
+
+- Use the `__Host-pastalist.session` cookie: Secure, HttpOnly, SameSite=Lax and Path `/`.
+- Never persist plaintext login codes. Hash them with the configured HMAC key and
+  compare with `CryptographicOperations.FixedTimeEquals`.
+- Login-code requests must not reveal whether an account exists. Keep the response
+  generic and rate-limit both IP and normalized email.
+- Keep Data Protection keys on persistent storage in production. A container restart
+  must not invalidate every session.
+- Keep `/health` anonymous, protect list routes with authorization, and return 401/403
+  JSON rather than cookie-auth HTML redirects.

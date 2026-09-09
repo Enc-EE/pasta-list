@@ -10,7 +10,9 @@ public static class ShoppingListEndpoints
 {
     public static IEndpointRouteBuilder MapShoppingListEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/lists").WithTags("ShoppingLists");
+        var group = app.MapGroup("/api/lists")
+            .WithTags("ShoppingLists")
+            .RequireAuthorization();
 
         group.MapGet("/", GetLists).WithName("GetShoppingLists");
         group.MapGet("/{id:guid}", GetList).WithName("GetShoppingList");

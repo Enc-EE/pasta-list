@@ -1,7 +1,15 @@
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using PastaList.Api.Data;
 using PastaList.Api.Endpoints;
+using PastaList.Api.Middleware;
+using PastaList.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +31,94 @@ builder.Services.AddDbContext<PastaListDbContext>(options =>
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection("Auth"));
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddScoped<LoginCodeService>();
+builder.Services.AddSingleton<AuthRateLimiter>();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton<IVerificationEmailSender, LoggingVerificationEmailSender>();
+}
+else
+{
+    builder.Services.AddSingleton<IVerificationEmailSender, SmtpVerificationEmailSender>();
+}
+
+var dataProtectionPath = builder.Configuration["DataProtection:KeysPath"]
+    ?? Path.Combine(builder.Environment.ContentRootPath, "keys");
+Directory.CreateDirectory(dataProtectionPath);
+builder.Services.AddDataProtection()
+    .SetApplicationName("PastaList")
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionPath));
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "__Host-pastalist.session";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.Path = "/";
+        options.ExpireTimeSpan = TimeSpan.FromDays(14);
+        options.SlidingExpiration = true;
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnRedirectToLogin = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            },
+            OnRedirectToAccessDenied = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            },
+            OnValidatePrincipal = async context =>
+            {
+                var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+                var securityStamp = context.Principal?.FindFirstValue("security_stamp");
+                if (!Guid.TryParse(userId, out var parsedUserId) || string.IsNullOrWhiteSpace(securityStamp))
+                {
+                    context.RejectPrincipal();
+                    return;
+                }
+
+                var db = context.HttpContext.RequestServices.GetRequiredService<PastaListDbContext>();
+                var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(item => item.Id == parsedUserId);
+                if (user is null || !CryptographicOperations.FixedTimeEquals(
+                        System.Text.Encoding.UTF8.GetBytes(user.SecurityStamp),
+                        System.Text.Encoding.UTF8.GetBytes(securityStamp)))
+                {
+                    context.RejectPrincipal();
+                }
+            }
+        };
+    });
+builder.Services.AddAuthorization();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("auth-request-ip", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromHours(1),
+            QueueLimit = 0
+        }));
+    options.AddPolicy("auth-verify-ip", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 20,
+            Window = TimeSpan.FromMinutes(15),
+            QueueLimit = 0
+        }));
+});
 
 if (!builder.Environment.IsDevelopment())
 {
@@ -43,6 +139,10 @@ if (!app.Environment.IsDevelopment())
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseMiddleware<SameOriginMiddleware>();
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
@@ -73,6 +173,7 @@ else
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" })).WithTags("System");
 
+app.MapAuthEndpoints();
 app.MapShoppingListEndpoints();
 app.MapShoppingListItemEndpoints();
 

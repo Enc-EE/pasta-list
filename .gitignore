@@ -502,6 +502,7 @@ web/certs/
 
 # Production SPA output copied into the API image during deployment
 api/PastaList.Api/wwwroot/
+api/PastaList.Api/keys/
 
 # Local environment overrides (may contain secrets)
 .env

@@ -4,6 +4,34 @@
 GET {{PastaList.Api_HostAddress}}/health
 Accept: application/json
 
+### Request a development login code
+# The code is written to the API log in Development.
+POST {{PastaList.Api_HostAddress}}/api/auth/request-code
+Origin: https://localhost:7208
+Content-Type: application/json
+
+{
+  "email": "you@example.com"
+}
+
+### Verify the login code
+POST {{PastaList.Api_HostAddress}}/api/auth/verify
+Origin: https://localhost:7208
+Content-Type: application/json
+
+{
+  "email": "you@example.com",
+  "code": "000000"
+}
+
+### Current session
+GET {{PastaList.Api_HostAddress}}/api/auth/me
+Accept: application/json
+
+### Logout
+POST {{PastaList.Api_HostAddress}}/api/auth/logout
+Origin: https://localhost:7208
+
 ### Get all lists
 GET {{PastaList.Api_HostAddress}}/api/lists
 Accept: application/json

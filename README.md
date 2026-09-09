@@ -69,6 +69,34 @@ reviewed migration bundle or `dotnet ef database update` as a deployment step.
 Persist ASP.NET Core Data Protection keys before authentication is added; otherwise
 container restarts invalidate all cookie sessions.
 
+## Authentication
+
+Authentication uses a six-digit, single-use email code and an ASP.NET Core cookie.
+The code is stored only as an HMAC-SHA256 hash, expires after 10 minutes, and is
+burned after five failed attempts. Development writes the code to the API log;
+production uses the configured SMTP sender.
+
+The session cookie is `__Host-pastalist.session`: Secure, HttpOnly, SameSite=Lax,
+and valid for 14 days with sliding expiration. All list endpoints require it;
+`/health` and the login-code request/verification endpoints do not.
+
+For production, configure these environment variables without committing secrets:
+
+```bash
+ConnectionStrings__PastaList=...
+Auth__CodeHashKey=...       # long random secret, stable across restarts
+Email__Host=...
+Email__Port=587
+Email__User=...
+Email__Password=...
+Email__From=auth@pasta-list.de
+DataProtection__KeysPath=/var/lib/pasta-list/keys
+```
+
+The reverse proxy must preserve `X-Forwarded-Proto`, and the Data Protection key
+directory must be a persistent volume. Development uses `https://localhost:5173`
+as the allowed frontend origin; CSRF-protected mutations reject other origins.
+
 ## API surface
 
 | Method   | Route                                     | Purpose               |

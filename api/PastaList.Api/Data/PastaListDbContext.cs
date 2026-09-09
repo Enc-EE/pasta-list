@@ -9,6 +9,10 @@ public class PastaListDbContext(DbContextOptions<PastaListDbContext> options) : 
 
     public DbSet<ShoppingListItem> ShoppingListItems => Set<ShoppingListItem>();
 
+    public DbSet<User> Users => Set<User>();
+
+    public DbSet<LoginCode> LoginCodes => Set<LoginCode>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("pasta");
