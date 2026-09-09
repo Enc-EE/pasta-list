@@ -2,11 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "API (http)",
+            "name": "API (https)",
             "type": "dotnet",
             "request": "launch",
             "projectPath": "${workspaceFolder}/api/PastaList.Api/PastaList.Api.csproj",
-            "launchConfigurationId": "http"
+            "launchConfigurationId": "https"
         },
         {
             "name": "Web (Chrome)",

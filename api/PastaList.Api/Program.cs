@@ -1,10 +1,9 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using PastaList.Api.Data;
 using PastaList.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
-
-const string CorsPolicy = "PastaListWeb";
 
 // Connection string precedence: env var ConnectionStrings__PastaList > appsettings.*.json
 var connectionString = builder.Configuration.GetConnectionString("PastaList")
@@ -25,18 +24,22 @@ builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddCors(options =>
+if (!builder.Environment.IsDevelopment())
 {
-    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-        ?? ["http://localhost:5173"];
-
-    options.AddPolicy(CorsPolicy, policy => policy
-        .WithOrigins(allowedOrigins)
-        .AllowAnyHeader()
-        .AllowAnyMethod());
-});
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+}
 
 var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseForwardedHeaders();
+}
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
@@ -53,15 +56,34 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseHttpsRedirection();
-}
+    app.UseDefaultFiles();
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        OnPrepareResponse = context =>
+        {
+            var path = context.Context.Request.Path.Value ?? string.Empty;
+            var cacheControl = path.StartsWith("/assets/", StringComparison.OrdinalIgnoreCase)
+                ? "public, max-age=31536000, immutable"
+                : "no-cache";
 
-app.UseCors(CorsPolicy);
+            context.Context.Response.Headers.CacheControl = cacheControl;
+        }
+    });
+}
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" })).WithTags("System");
 
 app.MapShoppingListEndpoints();
 app.MapShoppingListItemEndpoints();
+
+app.Map("/api/{**rest}", () => Results.Problem(
+    statusCode: StatusCodes.Status404NotFound,
+    title: "API endpoint not found."));
+
+if (!app.Environment.IsDevelopment())
+{
+    app.MapFallbackToFile("index.html");
+}
 
 app.Run();
 

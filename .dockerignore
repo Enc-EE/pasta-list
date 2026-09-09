@@ -1,0 +1,11 @@
+.git
+.github
+.vscode
+api/PastaList.Api/bin
+api/PastaList.Api/obj
+api/PastaList.Api/wwwroot
+web/node_modules
+web/dist
+web/certs
+**/*.user
+**/*.suo

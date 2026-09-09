@@ -497,6 +497,12 @@ web/.vite/
 package-lock.json
 yarn.lock
 
+# Local HTTPS development certificate
+web/certs/
+
+# Production SPA output copied into the API image during deployment
+api/PastaList.Api/wwwroot/
+
 # Local environment overrides (may contain secrets)
 .env
 .env.local

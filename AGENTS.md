@@ -17,8 +17,9 @@ Guidance for AI coding agents working in this repository. Read this first.
 ```bash
 podman machine start          # macOS only, once per boot
 ./database/scripts/db-up.sh   # PostgreSQL on localhost:5432
-cd api/PastaList.Api && dotnet run --launch-profile http   # http://localhost:5192
-cd web && pnpm install && pnpm dev                         # http://localhost:5173
+./scripts/dev-certs.sh
+cd api/PastaList.Api && dotnet run --launch-profile https # https://localhost:7208
+cd web && pnpm install && pnpm dev                         # https://localhost:5173
 ```
 
 The API applies EF migrations and seeds demo data automatically in Development.
@@ -61,7 +62,10 @@ There is no test suite yet. If you add testable logic, add tests
 - Styling goes through the theme (`src/theme/theme.ts`) and `sx`. No CSS files, no inline `style`.
 - Types shared with the API live in `src/types/shoppingList.ts` and must mirror
   `api/PastaList.Api/Contracts/ShoppingListDtos.cs` (camelCase on the wire).
-- The dev server proxies `/api` to `http://localhost:5192` — use relative URLs.
+- Development uses HTTPS and the Vite server proxies `/api` to `https://localhost:7208`.
+  Production serves the built SPA from the API's `wwwroot`; use relative `/api` URLs.
+- The API and SPA are one origin in production. Do not add CORS as a substitute for
+  same-origin hosting.
 
 ### Database (`database/`)
 

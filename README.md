@@ -4,8 +4,8 @@ A shopping list app. React frontend, C# API, PostgreSQL.
 
 | Part       | Stack                                                              | Dev URL                 |
 | ---------- | ------------------------------------------------------------------ | ----------------------- |
-| `web/`     | React 19, TypeScript, Vite, MUI v9, Redux Toolkit + RTK Query       | http://localhost:5173   |
-| `api/`     | ASP.NET Core 9 minimal API, EF Core 9, Npgsql                       | http://localhost:5192   |
+| `web/`     | React 19, TypeScript, Vite, MUI v9, Redux Toolkit + RTK Query       | https://localhost:5173  |
+| `api/`     | ASP.NET Core 9 minimal API, EF Core 9, Npgsql                       | https://localhost:7208  |
 | `database/`| PostgreSQL 17 in a Podman container (docs + scripts only)           | localhost:5432          |
 
 ## Prerequisites
@@ -25,7 +25,7 @@ podman machine start
 
 # 2. api  (applies migrations + seeds demo data in Development)
 cd api/PastaList.Api
-dotnet run --launch-profile http
+dotnet run --launch-profile https
 
 # 3. web
 cd web
@@ -33,7 +33,8 @@ pnpm install
 pnpm dev
 ```
 
-Then open http://localhost:5173. The Vite dev server proxies `/api` to the API,
+Then open https://localhost:5173. Run `./scripts/dev-certs.sh` once first to create
+the trusted certificate used by Vite. The Vite dev server proxies `/api` to the API,
 so no CORS setup is needed locally.
 
 In VS Code you can instead run the task **dev: full stack**.
@@ -46,6 +47,27 @@ cd web && pnpm lint && pnpm build
 ```
 
 Or the VS Code task **verify: all** (default build task).
+
+## Hosting shape
+
+Production is a same-origin BFF: the ASP.NET Core app serves the compiled React
+application from `wwwroot` and handles `/api/*`. Put the container behind a TLS
+terminating reverse proxy for `pasta-list.de`; the proxy enforces HTTPS and forwards
+the original scheme using `X-Forwarded-Proto`.
+
+Build the deployable image from the repository root:
+
+```bash
+podman build -f Containerfile -t pasta-list:local .
+podman run --rm -p 127.0.0.1:8080:8080 \
+  -e ConnectionStrings__PastaList='Host=host.containers.internal;Port=5432;Database=pastalist;Username=pastalist;Password=pastalist_dev' \
+  pasta-list:local
+```
+
+The production container does not run database migrations automatically. Apply a
+reviewed migration bundle or `dotnet ef database update` as a deployment step.
+Persist ASP.NET Core Data Protection keys before authentication is added; otherwise
+container restarts invalidate all cookie sessions.
 
 ## API surface
 
@@ -63,7 +85,7 @@ Or the VS Code task **verify: all** (default build task).
 | `PATCH`  | `/api/lists/{listId}/items/{itemId}/toggle` | Toggle checked      |
 | `DELETE` | `/api/lists/{listId}/items/{itemId}`      | Delete an item        |
 
-OpenAPI document (Development): http://localhost:5192/openapi/v1.json
+OpenAPI document (Development): https://localhost:7208/openapi/v1.json
 Ready-made requests: [api/PastaList.Api/PastaList.Api.http](api/PastaList.Api/PastaList.Api.http)
 
 ## Project layout

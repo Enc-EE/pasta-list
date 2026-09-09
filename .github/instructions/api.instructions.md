@@ -50,6 +50,16 @@ Do not add MVC controllers, AutoMapper, or a repository layer over `DbContext`.
 - Async all the way; no `.Result` or `.Wait()`.
 - The build must stay at 0 warnings.
 
+## Hosting
+
+- Production serves the SPA from `wwwroot` with `UseDefaultFiles`, `UseStaticFiles`
+  and `MapFallbackToFile("index.html")`; API routes remain under `/api`.
+- `UseForwardedHeaders` must run before `UseHttpsRedirection` when deployed behind a
+  reverse proxy. The container must not be directly exposed to the public internet.
+- Keep unknown `/api/*` requests as JSON 404 responses; never let the SPA fallback
+  return HTML for an API miss.
+- Local development uses the trusted ASP.NET certificate and Vite's HTTPS proxy.
+
 ## Configuration & security
 
 - Read config through `IConfiguration`; fail fast with a clear exception when a
@@ -57,4 +67,5 @@ Do not add MVC controllers, AutoMapper, or a repository layer over `DbContext`.
 - Never hard-code secrets. Non-development values come from environment variables
   such as `ConnectionStrings__PastaList`.
 - `EnableSensitiveDataLogging`, auto-migration and seeding stay Development-only.
-- CORS origins are configured, never `AllowAnyOrigin`.
+- The browser and API are same-origin in production; do not reintroduce CORS for the
+  BFF. Any future cross-origin integration needs an explicit security review.

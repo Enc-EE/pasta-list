@@ -1,4 +1,4 @@
-@PastaList.Api_HostAddress = http://localhost:5192
+@PastaList.Api_HostAddress = https://localhost:7208
 
 ### Health probe
 GET {{PastaList.Api_HostAddress}}/health
