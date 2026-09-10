@@ -8,7 +8,8 @@ public record ShoppingListSummaryDto(
     int ItemCount,
     int CheckedItemCount,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string Role);
 
 public record ShoppingListDto(
     Guid Id,
@@ -17,6 +18,7 @@ public record ShoppingListDto(
     bool IsArchived,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
+    string Role,
     IReadOnlyList<ShoppingListItemDto> Items);
 
 public record ShoppingListItemDto(

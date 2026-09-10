@@ -20,8 +20,19 @@ public class ShoppingListConfiguration : IEntityTypeConfiguration<ShoppingList>
             .HasMaxLength(1000);
 
         builder.HasIndex(x => x.IsArchived);
+        builder.HasIndex(x => x.OwnerId);
 
         builder.HasMany(x => x.Items)
+            .WithOne(x => x.ShoppingList)
+            .HasForeignKey(x => x.ShoppingListId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(x => x.Members)
+            .WithOne(x => x.ShoppingList)
+            .HasForeignKey(x => x.ShoppingListId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(x => x.Invitations)
             .WithOne(x => x.ShoppingList)
             .HasForeignKey(x => x.ShoppingListId)
             .OnDelete(DeleteBehavior.Cascade);

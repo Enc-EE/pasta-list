@@ -16,16 +16,17 @@ public static class ShoppingListMappings
         item.IsChecked,
         item.SortOrder);
 
-    public static ShoppingListDto ToDto(this ShoppingList list) => new(
+    public static ShoppingListDto ToDto(this ShoppingList list, ShoppingListRole role) => new(
         list.Id,
         list.Name,
         list.Description,
         list.IsArchived,
         list.CreatedAt,
         list.UpdatedAt,
+        role.ToString(),
         list.Items.OrderBy(i => i.SortOrder).Select(ToDto).ToList());
 
-    public static ShoppingListSummaryDto ToSummaryDto(this ShoppingList list) => new(
+    public static ShoppingListSummaryDto ToSummaryDto(this ShoppingList list, ShoppingListRole role) => new(
         list.Id,
         list.Name,
         list.Description,
@@ -33,5 +34,16 @@ public static class ShoppingListMappings
         list.Items.Count,
         list.Items.Count(i => i.IsChecked),
         list.CreatedAt,
-        list.UpdatedAt);
+        list.UpdatedAt,
+        role.ToString());
+
+    public static ShoppingListMemberDto ToDto(this ShoppingListMember member) => new(
+        member.Id,
+        member.UserId,
+        member.User?.Email ?? string.Empty,
+        member.Role.ToString(),
+        member.CreatedAt);
+
+    public static bool TryParseRole(string? value, out ShoppingListRole role) =>
+        Enum.TryParse(value, ignoreCase: true, out role) && Enum.IsDefined(role);
 }

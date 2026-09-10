@@ -3,6 +3,7 @@ using PastaList.Api.Contracts;
 using PastaList.Api.Data;
 using PastaList.Api.Domain;
 using PastaList.Api.Mapping;
+using PastaList.Api.Services;
 
 namespace PastaList.Api.Endpoints;
 
@@ -23,11 +24,33 @@ public static class ShoppingListItemEndpoints
         return app;
     }
 
+    private static IResult? RequireMember(ShoppingListRole? role) =>
+        role is null ? Results.NotFound() : null;
+
+    private static IResult? RequireEditor(ShoppingListRole? role)
+    {
+        if (role is null)
+        {
+            return Results.NotFound();
+        }
+
+        return role == ShoppingListRole.Viewer
+            ? Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Viewers cannot modify this list.")
+            : null;
+    }
+
     private static async Task<IResult> GetItems(
         Guid listId,
         PastaListDbContext db,
+        ICurrentUser currentUser,
         CancellationToken cancellationToken)
     {
+        var role = await db.GetMemberRoleAsync(listId, currentUser.Id!.Value, cancellationToken);
+        if (RequireMember(role) is { } denied)
+        {
+            return denied;
+        }
+
         var items = await db.ShoppingListItems
             .AsNoTracking()
             .Where(i => i.ShoppingListId == listId)
@@ -41,12 +64,13 @@ public static class ShoppingListItemEndpoints
         Guid listId,
         CreateShoppingListItemRequest request,
         PastaListDbContext db,
+        ICurrentUser currentUser,
         CancellationToken cancellationToken)
     {
-        var listExists = await db.ShoppingLists.AnyAsync(l => l.Id == listId, cancellationToken);
-        if (!listExists)
+        var role = await db.GetMemberRoleAsync(listId, currentUser.Id!.Value, cancellationToken);
+        if (RequireEditor(role) is { } denied)
         {
-            return Results.NotFound();
+            return denied;
         }
 
         if (string.IsNullOrWhiteSpace(request.Name))
@@ -84,8 +108,15 @@ public static class ShoppingListItemEndpoints
         Guid itemId,
         UpdateShoppingListItemRequest request,
         PastaListDbContext db,
+        ICurrentUser currentUser,
         CancellationToken cancellationToken)
     {
+        var role = await db.GetMemberRoleAsync(listId, currentUser.Id!.Value, cancellationToken);
+        if (RequireEditor(role) is { } denied)
+        {
+            return denied;
+        }
+
         var item = await db.ShoppingListItems
             .FirstOrDefaultAsync(i => i.Id == itemId && i.ShoppingListId == listId, cancellationToken);
 
@@ -111,8 +142,15 @@ public static class ShoppingListItemEndpoints
         Guid listId,
         Guid itemId,
         PastaListDbContext db,
+        ICurrentUser currentUser,
         CancellationToken cancellationToken)
     {
+        var role = await db.GetMemberRoleAsync(listId, currentUser.Id!.Value, cancellationToken);
+        if (RequireEditor(role) is { } denied)
+        {
+            return denied;
+        }
+
         var item = await db.ShoppingListItems
             .FirstOrDefaultAsync(i => i.Id == itemId && i.ShoppingListId == listId, cancellationToken);
 
@@ -131,8 +169,15 @@ public static class ShoppingListItemEndpoints
         Guid listId,
         Guid itemId,
         PastaListDbContext db,
+        ICurrentUser currentUser,
         CancellationToken cancellationToken)
     {
+        var role = await db.GetMemberRoleAsync(listId, currentUser.Id!.Value, cancellationToken);
+        if (RequireEditor(role) is { } denied)
+        {
+            return denied;
+        }
+
         var deleted = await db.ShoppingListItems
             .Where(i => i.Id == itemId && i.ShoppingListId == listId)
             .ExecuteDeleteAsync(cancellationToken);

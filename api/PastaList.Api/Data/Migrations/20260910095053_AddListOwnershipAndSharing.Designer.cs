@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PastaList.Api.Data;
@@ -11,9 +12,11 @@ using PastaList.Api.Data;
 namespace PastaList.Api.Data.Migrations
 {
     [DbContext(typeof(PastaListDbContext))]
-    partial class PastaListDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260910095053_AddListOwnershipAndSharing")]
+    partial class AddListOwnershipAndSharing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

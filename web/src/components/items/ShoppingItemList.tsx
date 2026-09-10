@@ -16,9 +16,10 @@ import type { ShoppingListItem } from '../../types/shoppingList'
 interface ShoppingItemListProps {
     listId: string
     items: ShoppingListItem[]
+    readOnly?: boolean
 }
 
-export default function ShoppingItemList({ listId, items }: ShoppingItemListProps) {
+export default function ShoppingItemList({ listId, items, readOnly = false }: ShoppingItemListProps) {
     const dispatch = useAppDispatch()
     const [toggleItem] = useToggleItemMutation()
     const [deleteItem] = useDeleteItemMutation()
@@ -44,12 +45,18 @@ export default function ShoppingItemList({ listId, items }: ShoppingItemListProp
                     key={item.id}
                     disablePadding
                     secondaryAction={
-                        <IconButton edge="end" aria-label={`Delete ${item.name}`} onClick={() => remove(item.id)}>
-                            <DeleteOutlineIcon />
-                        </IconButton>
+                        readOnly ? undefined : (
+                            <IconButton edge="end" aria-label={`Delete ${item.name}`} onClick={() => remove(item.id)}>
+                                <DeleteOutlineIcon />
+                            </IconButton>
+                        )
                     }
                 >
-                    <ListItemButton onClick={() => toggleItem({ listId, itemId: item.id })} dense>
+                    <ListItemButton
+                        onClick={() => !readOnly && toggleItem({ listId, itemId: item.id })}
+                        disabled={readOnly}
+                        dense
+                    >
                         <ListItemIcon>
                             <Checkbox edge="start" checked={item.isChecked} tabIndex={-1} disableRipple />
                         </ListItemIcon>

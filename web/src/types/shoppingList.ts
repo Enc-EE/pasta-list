@@ -1,3 +1,5 @@
+export type ShoppingListRole = 'Owner' | 'Editor' | 'Viewer'
+
 export interface ShoppingListSummary {
     id: string
     name: string
@@ -7,6 +9,7 @@ export interface ShoppingListSummary {
     checkedItemCount: number
     createdAt: string
     updatedAt: string
+    role: ShoppingListRole
 }
 
 export interface ShoppingListItem {
@@ -28,7 +31,25 @@ export interface ShoppingList {
     isArchived: boolean
     createdAt: string
     updatedAt: string
+    role: ShoppingListRole
     items: ShoppingListItem[]
+}
+
+export interface ShoppingListMember {
+    id: string
+    userId: string
+    email: string
+    role: ShoppingListRole
+    createdAt: string
+}
+
+export interface InviteShoppingListMemberRequest {
+    email: string
+    role: ShoppingListRole
+}
+
+export interface UpdateShoppingListMemberRoleRequest {
+    role: ShoppingListRole
 }
 
 export interface CreateShoppingListRequest {

@@ -47,8 +47,11 @@ else
     builder.Services.AddSingleton<IVerificationEmailSender, SmtpVerificationEmailSender>();
 }
 
-var dataProtectionPath = builder.Configuration["DataProtection:KeysPath"]
-    ?? Path.Combine(builder.Environment.ContentRootPath, "keys");
+var dataProtectionPath = builder.Configuration["DataProtection:KeysPath"];
+if (string.IsNullOrWhiteSpace(dataProtectionPath))
+{
+    dataProtectionPath = Path.Combine(builder.Environment.ContentRootPath, "keys");
+}
 Directory.CreateDirectory(dataProtectionPath);
 builder.Services.AddDataProtection()
     .SetApplicationName("PastaList")
@@ -176,6 +179,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" })).WithTags("System"
 app.MapAuthEndpoints();
 app.MapShoppingListEndpoints();
 app.MapShoppingListItemEndpoints();
+app.MapShoppingListMemberEndpoints();
 
 app.Map("/api/{**rest}", () => Results.Problem(
     statusCode: StatusCodes.Status404NotFound,

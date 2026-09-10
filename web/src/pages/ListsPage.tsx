@@ -5,6 +5,7 @@ import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardActionArea from '@mui/material/CardActionArea'
 import CardContent from '@mui/material/CardContent'
+import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import LinearProgress from '@mui/material/LinearProgress'
 import Stack from '@mui/material/Stack'
@@ -53,7 +54,10 @@ export default function ListsPage() {
                         <Card key={list.id} variant="outlined">
                             <CardActionArea onClick={() => navigate(`/lists/${list.id}`)}>
                                 <CardContent>
-                                    <Typography variant="h2">{list.name}</Typography>
+                                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                                        <Typography variant="h2">{list.name}</Typography>
+                                        <Chip size="small" label={list.role} color={list.role === 'Owner' ? 'primary' : 'default'} />
+                                    </Stack>
                                     {list.description && (
                                         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                                             {list.description}

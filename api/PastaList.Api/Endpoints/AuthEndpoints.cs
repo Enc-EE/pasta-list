@@ -94,6 +94,32 @@ public static class AuthEndpoints
         }
 
         user.LastLoginAt = DateTimeOffset.UtcNow;
+
+        var pendingInvitations = await db.ShoppingListInvitations
+            .Where(invitation => invitation.Email == email
+                && invitation.AcceptedAt == null
+                && invitation.ExpiresAt > DateTimeOffset.UtcNow)
+            .ToListAsync(cancellationToken);
+
+        foreach (var invitation in pendingInvitations)
+        {
+            var alreadyMember = await db.ShoppingListMembers.AnyAsync(
+                member => member.ShoppingListId == invitation.ShoppingListId && member.UserId == user.Id,
+                cancellationToken);
+
+            if (!alreadyMember)
+            {
+                db.ShoppingListMembers.Add(new ShoppingListMember
+                {
+                    ShoppingListId = invitation.ShoppingListId,
+                    UserId = user.Id,
+                    Role = invitation.Role
+                });
+            }
+
+            invitation.AcceptedAt = DateTimeOffset.UtcNow;
+        }
+
         await db.SaveChangesAsync(cancellationToken);
 
         var claims = new[]
