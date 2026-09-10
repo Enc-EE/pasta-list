@@ -29,10 +29,12 @@ The API applies EF migrations and seeds demo data automatically in Development.
 ```bash
 cd web  && pnpm lint && pnpm build   # type-check + lint + bundle
 cd api  && dotnet build              # must be 0 warnings, 0 errors
+cd api  && dotnet test               # API unit tests
+cd web  && pnpm test                 # frontend component tests
 ```
 
-There is no test suite yet. If you add testable logic, add tests
-(`api/PastaList.Api.Tests` with xUnit, `web` with Vitest) rather than skipping verification.
+API tests live in `api/PastaList.Api.Tests` (xUnit). Frontend tests use Vitest and
+Testing Library under `web/src/**/*.test.tsx`.
 
 ## Architecture rules
 

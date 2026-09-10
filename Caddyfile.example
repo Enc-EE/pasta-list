@@ -1,0 +1,7 @@
+# Replace the upstream address if the app runs on another host.
+pasta-list.de {
+    reverse_proxy app:8080 {
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-For {remote_host}
+    }
+}

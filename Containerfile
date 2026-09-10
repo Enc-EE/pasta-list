@@ -13,6 +13,7 @@ WORKDIR /src
 
 COPY api/PastaList.sln api/
 COPY api/PastaList.Api/PastaList.Api.csproj api/PastaList.Api/
+COPY api/PastaList.Api.Tests/PastaList.Api.Tests.csproj api/PastaList.Api.Tests/
 RUN dotnet restore api/PastaList.sln
 
 COPY api/ api/

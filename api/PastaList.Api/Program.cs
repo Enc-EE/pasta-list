@@ -138,10 +138,18 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseForwardedHeaders();
+    app.UseHsts();
 }
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
+    await next();
+});
 app.UseMiddleware<SameOriginMiddleware>();
 app.UseRateLimiter();
 app.UseAuthentication();

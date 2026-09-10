@@ -81,3 +81,10 @@ Do not add MVC controllers, AutoMapper, or a repository layer over `DbContext`.
   must not invalidate every session.
 - Keep `/health` anonymous, protect list routes with authorization, and return 401/403
   JSON rather than cookie-auth HTML redirects.
+
+## Testing
+
+- API unit tests live in `api/PastaList.Api.Tests` and use xUnit.
+- Keep OTP, normalization, rate-limit, and authorization rules covered with focused
+  tests. Use EF InMemory only for service tests; use a real PostgreSQL-backed fixture
+  before claiming migration/query compatibility.

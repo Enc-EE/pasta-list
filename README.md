@@ -44,6 +44,8 @@ In VS Code you can instead run the task **dev: full stack**.
 ```bash
 cd api && dotnet build
 cd web && pnpm lint && pnpm build
+cd api && dotnet test
+cd web && pnpm test
 ```
 
 Or the VS Code task **verify: all** (default build task).
@@ -64,10 +66,24 @@ podman run --rm -p 127.0.0.1:8080:8080 \
   pasta-list:local
 ```
 
+For a production-style app container, copy `.env.production.example` to an
+untracked `.env.production`, replace every placeholder, then run:
+
+```bash
+podman build -f Containerfile -t pasta-list:latest .
+podman compose --env-file .env.production -f compose.production.yaml up -d
+```
+
+Put the app service behind the reverse proxy described in
+[Caddyfile.example](Caddyfile.example). The app container is intentionally not
+published to the public network; the proxy is responsible for TLS and forwards
+`X-Forwarded-Proto`.
+
 The production container does not run database migrations automatically. Apply a
-reviewed migration bundle or `dotnet ef database update` as a deployment step.
-Persist ASP.NET Core Data Protection keys before authentication is added; otherwise
-container restarts invalidate all cookie sessions.
+reviewed migration bundle or run `./scripts/migrate-production.sh` with
+`ConnectionStrings__PastaList` set as a deployment step. Persist ASP.NET Core Data
+Protection keys in the compose volume; otherwise container restarts invalidate all
+cookie sessions.
 
 ## Authentication
 
@@ -102,11 +118,19 @@ as the allowed frontend origin; CSRF-protected mutations reject other origins.
 | Method   | Route                                     | Purpose               |
 | -------- | ----------------------------------------- | --------------------- |
 | `GET`    | `/health`                                 | Liveness probe        |
+| `POST`   | `/api/auth/request-code`                  | Request login code    |
+| `POST`   | `/api/auth/verify`                        | Verify login code     |
+| `GET`    | `/api/auth/me`                            | Current session       |
+| `POST`   | `/api/auth/logout`                        | End session           |
 | `GET`    | `/api/lists?includeArchived=false`        | List summaries        |
 | `GET`    | `/api/lists/{id}`                         | One list with items   |
 | `POST`   | `/api/lists`                              | Create a list         |
 | `PUT`    | `/api/lists/{id}`                         | Update a list         |
 | `DELETE` | `/api/lists/{id}`                         | Delete a list         |
+| `GET`    | `/api/lists/{listId}/members`             | List members          |
+| `POST`   | `/api/lists/{listId}/members`             | Invite a member       |
+| `PUT`    | `/api/lists/{listId}/members/{userId}`    | Change member role    |
+| `DELETE` | `/api/lists/{listId}/members/{userId}`    | Remove a member       |
 | `GET`    | `/api/lists/{listId}/items`               | Items of a list       |
 | `POST`   | `/api/lists/{listId}/items`               | Add an item           |
 | `PUT`    | `/api/lists/{listId}/items/{itemId}`      | Update an item        |
@@ -155,8 +179,7 @@ configuration through environment variables or a secret store.
 
 ## Roadmap / TODO
 
-- [ ] Authentication and per-user lists (`ShoppingList.OwnerId`)
 - [ ] Drag & drop reordering of items
-- [ ] Tests: xUnit for the API, Vitest + Testing Library for the web app
-- [ ] CI workflow running both verification commands
+- [ ] PostgreSQL-backed integration tests for migrations and authorization queries
+- [ ] CI deployment/publish workflow
 - [ ] Persist theme preference in `localStorage`

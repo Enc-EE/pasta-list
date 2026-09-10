@@ -55,3 +55,11 @@ description: React, MUI and Redux conventions for the Pasta List frontend.
 - Use relative `/api` URLs; the Vite dev server proxies to the API.
 - Handle mutation failures with `try { await ...unwrap() } catch` and dispatch
   `snackbarShown` with severity `error`. Never swallow an error silently.
+
+## Testing
+
+- Use Vitest and Testing Library. Run `pnpm test` for the focused suite.
+- Mock RTK Query hooks when testing a page’s rendering or form contract; use a real
+  Redux store only when testing cache behavior or cross-component integration.
+- Tests live beside the component/page as `*.test.tsx` and must assert accessible
+  labels, roles, and user-visible state rather than MUI implementation classes.
