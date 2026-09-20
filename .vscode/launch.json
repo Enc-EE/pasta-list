@@ -21,7 +21,7 @@
         {
             "name": "Full stack",
             "configurations": [
-                "API (http)",
+                "API (https)",
                 "Web (Chrome)"
             ]
         }

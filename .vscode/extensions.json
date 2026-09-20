@@ -5,7 +5,6 @@
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "ms-ossdata.vscode-pgsql",
-        "humao.rest-client",
         "editorconfig.editorconfig",
         "github.copilot",
         "github.copilot-chat"

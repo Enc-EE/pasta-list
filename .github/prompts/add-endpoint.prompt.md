@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: Add a new REST endpoint to the Pasta List API and wire it into the frontend.
 ---
 

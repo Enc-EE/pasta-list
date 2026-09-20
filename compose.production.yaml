@@ -1,6 +1,6 @@
 services:
   app:
-    image: pasta-list:latest
+    image: ${PASTA_LIST_IMAGE:?set PASTA_LIST_IMAGE}
     container_name: pastalist-app
     environment:
       ASPNETCORE_ENVIRONMENT: Production
