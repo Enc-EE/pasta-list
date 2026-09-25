@@ -79,11 +79,11 @@ Put the app service behind the reverse proxy described in
 published to the public network; the proxy is responsible for TLS and forwards
 `X-Forwarded-Proto`.
 
-The production container does not run database migrations automatically. Apply a
-reviewed migration bundle or run `./scripts/migrate-production.sh` with
-`ConnectionStrings__PastaList` set as a deployment step. Persist ASP.NET Core Data
-Protection keys in the compose volume; otherwise container restarts invalidate all
-cookie sessions.
+The production web process does not run database migrations automatically. Before
+starting a new image, run its migration-only mode with
+`podman compose --env-file .env.production -f compose.production.yaml run --rm app --migrate-only`.
+Persist ASP.NET Core Data Protection keys in the compose volume; otherwise container
+restarts invalidate all cookie sessions.
 
 For the complete image publishing, secrets, Compose, migration, reverse-proxy,
 and verification procedure, see [DEPLOYMENT.md](DEPLOYMENT.md).

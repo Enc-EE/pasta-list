@@ -13,7 +13,6 @@ using PastaList.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Connection string precedence: env var ConnectionStrings__PastaList > appsettings.*.json > file at PastaList_File (podman secrets)
 var connectionString = builder.Configuration.GetConnectionString("PastaList");
 var connectionStringFilePath = Environment.GetEnvironmentVariable("ConnectionStrings__PastaList_File");
 if (!string.IsNullOrWhiteSpace(connectionStringFilePath) && File.Exists(connectionStringFilePath))
@@ -155,6 +154,16 @@ if (!builder.Environment.IsDevelopment())
 }
 
 var app = builder.Build();
+
+if (args.Contains("--migrate-only", StringComparer.Ordinal))
+{
+    app.Logger.LogInformation("Applying database migrations");
+    await using var scope = app.Services.CreateAsyncScope();
+    var db = scope.ServiceProvider.GetRequiredService<PastaListDbContext>();
+    await db.Database.MigrateAsync();
+    app.Logger.LogInformation("Database migrations applied successfully");
+    return;
+}
 
 if (!app.Environment.IsDevelopment())
 {

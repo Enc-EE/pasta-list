@@ -5,7 +5,7 @@
 1. `APP_USER=pastalistdbuser`
 1. Create user pastalistdbuser (useradd, subuid, subgid)
 1. Create directory /projects/pasta-list-db
-1. curl database/compose.db.production.yaml -> compose.yaml
+1. curl database/compose.db.production.yaml -> compose.production.yaml
 1. check owner and permissions
 1. set secrets
 
@@ -15,7 +15,7 @@
 
 1. start
    ```
-   sudo -u $APP_USER podman-compose -f compose.yaml up -d
+   sudo -u $APP_USER podman-compose -f compose.production.yaml up -d
    ```
 
 ### App
@@ -23,35 +23,48 @@
 1. `APP_USER=pastalistuser`
 1. Create user pastalistdbuser (useradd, subuid, subgid)
 1. Create directory /projects/pasta-list
-1. curl compose.production.yaml -> compose.yaml
+1. curl compose.production.yaml
 1. create .env.production
 1. check owner and permissions
 1. set secrets
 
-   ```
+   ```bash
+   # Host=127.0.0.1;Port=31002;Database=pastalist;Username=pastalist;Password=replace
    read -rsp 'Secret: ' S; printf '%s' "$S" | sudo -u $APP_USER podman secret create connection_string -; unset S
    read -rsp 'Secret: ' S; printf '%s' "$S" | sudo -u $APP_USER podman secret create code_hash_key -; unset S
    read -rsp 'Secret: ' S; printf '%s' "$S" | sudo -u $APP_USER podman secret create email_password -; unset S
    ```
 
+1. migrate db
+   ```
+   sudo -u $APP_USER podman-compose --env-file .env.production -f compose.production.yaml run --rm app --migrate-only
+   ```
 1. start
    ```
-   sudo -u $APP_USER podman-compose --env-file .env.production -f compose.yaml up -d
+   sudo -u $APP_USER podman-compose --env-file .env.production -f compose.production.yaml up -d
    ```
+
+## Misc
+
+- openssl rand -base64 48
 
 ## Database migration
 
-The production container deliberately does not apply EF migrations at startup.
-Before deploying a version with schema changes, run the reviewed migration step
-against the production database from a trusted machine:
+The production web process deliberately does not apply EF migrations at startup.
+Before starting a version with schema changes, run its container image once in
+migration-only mode:
 
 ```bash
-export ConnectionStrings__PastaList='Host=...;Database=...;Username=...;Password=...'
-./scripts/migrate-production.sh
+sudo -u $APP_USER podman-compose --env-file .env.production -f compose.yaml pull app
+sudo -u $APP_USER podman-compose --env-file .env.production -f compose.yaml run --rm app --migrate-only
+sudo -u $APP_USER podman-compose --env-file .env.production -f compose.yaml up -d
 ```
 
-Back up the database first. Run a migration before or alongside the application
-deployment only when that migration is compatible with both application versions.
+The one-shot container uses the same image and secrets as the application and exits
+without opening an HTTP port. A migration failure returns a non-zero exit code, so do
+not start the new application version when this command fails. Back up the database
+first. Run a migration before or alongside the application deployment only when that
+migration is compatible with both application versions.
 
 ## Reverse proxy and TLS
 
