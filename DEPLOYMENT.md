@@ -1,60 +1,43 @@
-# Publishing Pasta List
+## Deployment Steps
 
-This repository produces one production image. It contains the ASP.NET Core API
-and the built React application, so deploy the same image for both the UI and
-`/api/*`.
+### DB
 
-## Prerequisites
+1. `APP_USER=pastalistdbuser`
+1. Create user pastalistdbuser (useradd, subuid, subgid)
+1. Create directory /projects/pasta-list-db
+1. curl database/compose.db.production.yaml -> compose.yaml
+1. check owner and permissions
+1. set secrets
 
-- PostgreSQL database
-- SMTP account
-- TLS-terminating reverse proxy that forwards `X-Forwarded-Proto`
-- Podman and Podman Compose
+   ```
+   read -rsp 'Secret: ' S; printf '%s' "$S" | sudo -u $APP_USER podman secret create db_password -; unset S
+   ```
 
-## Build and publish the image
+1. start
+   ```
+   sudo -u $APP_USER podman-compose -f compose.yaml up -d
+   ```
 
-```bash
-export IMAGE=registry.example.com/your-org/pasta-list:2026.09.20
-podman build --file Containerfile --tag "$IMAGE" .
-podman push "$IMAGE"
-```
+### App
 
-Use a new tag for each release. Do not rely on a mutable tag such as `latest`:
-it makes rollback and verification ambiguous.
+1. `APP_USER=pastalistuser`
+1. Create user pastalistdbuser (useradd, subuid, subgid)
+1. Create directory /projects/pasta-list
+1. curl compose.production.yaml -> compose.yaml
+1. create .env.production
+1. check owner and permissions
+1. set secrets
 
-## Configure the deployment host
+   ```
+   read -rsp 'Secret: ' S; printf '%s' "$S" | sudo -u $APP_USER podman secret create connection_string -; unset S
+   read -rsp 'Secret: ' S; printf '%s' "$S" | sudo -u $APP_USER podman secret create code_hash_key -; unset S
+   read -rsp 'Secret: ' S; printf '%s' "$S" | sudo -u $APP_USER podman secret create email_password -; unset S
+   ```
 
-Copy the tracked template to a deployment-only secrets file. The example file is
-safe to commit; `.env.production` must remain untracked.
-
-```bash
-cp .env.production.example .env.production
-chmod 600 .env.production
-```
-
-## Deploy with Compose
-
-Run these commands from the repository root on the deployment host:
-
-```bash
-podman login registry.example.com
-podman compose --env-file .env.production -f compose.production.yaml pull
-podman compose --env-file .env.production -f compose.production.yaml up -d
-podman compose --env-file .env.production -f compose.production.yaml ps
-```
-
-`compose.production.yaml` intentionally exposes port `8080` only to its Compose
-network. It does not publish a host port, so the application cannot be reached
-directly from the internet. It also restarts the app after a host reboot or
-process failure and persists data-protection keys in the `pastalist-keys` volume.
-
-To upgrade, change only `PASTA_LIST_IMAGE` to the new immutable tag, then run
-the `pull` and `up -d` commands again. To roll back, restore the previous tag and
-repeat those commands. Inspect failures with:
-
-```bash
-podman compose --env-file .env.production -f compose.production.yaml logs --tail=100 app
-```
+1. start
+   ```
+   sudo -u $APP_USER podman-compose --env-file .env.production -f compose.yaml up -d
+   ```
 
 ## Database migration
 

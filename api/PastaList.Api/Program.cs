@@ -13,9 +13,18 @@ using PastaList.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Connection string precedence: env var ConnectionStrings__PastaList > appsettings.*.json
-var connectionString = builder.Configuration.GetConnectionString("PastaList")
-    ?? throw new InvalidOperationException("Connection string 'PastaList' is not configured.");
+// Connection string precedence: env var ConnectionStrings__PastaList > appsettings.*.json > file at PastaList_File (podman secrets)
+var connectionString = builder.Configuration.GetConnectionString("PastaList");
+var connectionStringFilePath = Environment.GetEnvironmentVariable("ConnectionStrings__PastaList_File");
+if (!string.IsNullOrWhiteSpace(connectionStringFilePath) && File.Exists(connectionStringFilePath))
+{
+    connectionString = File.ReadAllText(connectionStringFilePath).Trim();
+}
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("Connection string 'PastaList' is not configured.");
+}
 
 builder.Services.AddDbContext<PastaListDbContext>(options =>
 {
@@ -32,7 +41,19 @@ builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection("Auth"));
+var authCodeHashKeyFilePath = Environment.GetEnvironmentVariable("Auth__CodeHashKey_File");
+if (!string.IsNullOrWhiteSpace(authCodeHashKeyFilePath) && File.Exists(authCodeHashKeyFilePath))
+{
+    var authCodeHashKey = File.ReadAllText(authCodeHashKeyFilePath).Trim();
+    builder.Services.PostConfigure<AuthOptions>(options => options.CodeHashKey = authCodeHashKey);
+}
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+var emailPasswordFilePath = Environment.GetEnvironmentVariable("Email__Password_File");
+if (!string.IsNullOrWhiteSpace(emailPasswordFilePath) && File.Exists(emailPasswordFilePath))
+{
+    var emailPassword = File.ReadAllText(emailPasswordFilePath).Trim();
+    builder.Services.PostConfigure<EmailOptions>(options => options.Password = emailPassword);
+}
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<LoginCodeService>();

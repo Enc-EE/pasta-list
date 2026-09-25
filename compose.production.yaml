@@ -1,23 +1,40 @@
 services:
   app:
-    image: ${PASTA_LIST_IMAGE:?set PASTA_LIST_IMAGE}
-    container_name: pastalist-app
+    image: ghcr.io/enc-ee/pasta-list:2026-09-20
+    secrets:
+      - connection_string
+      - code_hash_key
+      - email_password
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: 8080
-      ConnectionStrings__PastaList: ${PASTA_LIST_CONNECTION_STRING:?set PASTA_LIST_CONNECTION_STRING}
-      Auth__CodeHashKey: ${PASTA_LIST_CODE_HASH_KEY:?set PASTA_LIST_CODE_HASH_KEY}
+      ConnectionStrings__PastaList_File: /run/secrets/connection_string
+      Auth__CodeHashKey_File: /run/secrets/code_hash_key
       Email__Host: ${PASTA_LIST_SMTP_HOST:?set PASTA_LIST_SMTP_HOST}
       Email__Port: ${PASTA_LIST_SMTP_PORT:-587}
       Email__User: ${PASTA_LIST_SMTP_USER:?set PASTA_LIST_SMTP_USER}
-      Email__Password: ${PASTA_LIST_SMTP_PASSWORD:?set PASTA_LIST_SMTP_PASSWORD}
+      Email__Password_File: /run/secrets/email_password
       Email__From: ${PASTA_LIST_SMTP_FROM:?set PASTA_LIST_SMTP_FROM}
       DataProtection__KeysPath: /var/lib/pasta-list/keys
     volumes:
       - pastalist-keys:/var/lib/pasta-list/keys
-    expose:
-      - "8080"
+    ports:
+      - "127.0.0.1:31002:8080"
     restart: unless-stopped
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    pids_limit: 100
+
+secrets:
+  connection_string:
+    external: true
+  code_hash_key:
+    external: true
+  email_password:
+    external: true
 
 volumes:
   pastalist-keys:
