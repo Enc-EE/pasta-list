@@ -29,7 +29,7 @@ public class SmtpVerificationEmailSender(
         };
 
         using var client = new SmtpClient();
-        await client.ConnectAsync(emailOptions.Host, emailOptions.Port, SecureSocketOptions.StartTls, cancellationToken);
+        await client.ConnectAsync(emailOptions.Host, emailOptions.Port, SecureSocketOptions.Auto, cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(emailOptions.User))
         {

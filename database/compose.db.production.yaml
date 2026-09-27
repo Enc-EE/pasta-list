@@ -10,8 +10,10 @@ services:
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - pastalist-data:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:31001:5432"
+    networks:
+      pastalist-net:
+        aliases:
+          - db
     restart: unless-stopped
     cap_drop:
       - ALL
@@ -20,6 +22,7 @@ services:
       - FOWNER
       - SETUID
       - SETGID
+      - DAC_OVERRIDE
     security_opt:
       - no-new-privileges:true
     mem_limit: 256m
@@ -36,3 +39,8 @@ secrets:
 
 volumes:
   pastalist-data:
+
+networks:
+  pastalist-net:
+    name: pastalist-net
+    external: true

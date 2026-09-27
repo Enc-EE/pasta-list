@@ -19,7 +19,9 @@ services:
     volumes:
       - pastalist-keys:/var/lib/pasta-list/keys
     ports:
-      - "127.0.0.1:31002:8080"
+      - "31001:8080"
+    networks:
+      - pastalist-net
     restart: unless-stopped
     cap_drop:
       - ALL
@@ -38,3 +40,8 @@ secrets:
 
 volumes:
   pastalist-keys:
+
+networks:
+  pastalist-net:
+    name: pastalist-net
+    external: true
