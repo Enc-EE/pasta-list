@@ -18,7 +18,7 @@ import { useState, type MouseEvent } from 'react'
 import { Link as RouterLink, Outlet, useNavigate } from 'react-router-dom'
 
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
-import { useGetMeQuery, useLogoutMutation } from '../../features/api/pastaListApi'
+import { pastaListApi, useGetMeQuery, useLogoutMutation } from '../../features/api/pastaListApi'
 import { themeModeToggled } from '../../features/ui/uiSlice'
 import AppSnackbar from './AppSnackbar'
 
@@ -35,6 +35,8 @@ export default function AppLayout() {
     const handleLogout = async () => {
         closeMenu()
         await logout()
+        // Cached lists and members belong to the previous user; never let the next login see them.
+        dispatch(pastaListApi.util.resetApiState())
         navigate('/login', { replace: true })
     }
 

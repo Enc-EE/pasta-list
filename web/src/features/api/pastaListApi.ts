@@ -27,7 +27,7 @@ const rawBaseQuery = fetchBaseQuery({ baseUrl, credentials: 'same-origin' })
 const baseQueryWithSessionHandling: typeof rawBaseQuery = async (args, api, extraOptions) => {
     const result = await rawBaseQuery(args, api, extraOptions)
 
-    if (result.error?.status === 401) {
+    if (result.error?.status === 401 && api.endpoint !== 'getMe') {
         // Drop the stale session so the route guard falls back to the login screen.
         api.dispatch(pastaListApi.util.invalidateTags([{ type: 'Session', id: 'CURRENT' }]))
     }
