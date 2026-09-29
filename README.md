@@ -193,3 +193,5 @@ configuration through environment variables or a secret store.
 - verify sharing testing
 - generate rtk query
 - localization
+- PWA
+- icon

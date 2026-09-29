@@ -1,3 +1,4 @@
+import AddIcon from '@mui/icons-material/Add'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined'
 import GroupIcon from '@mui/icons-material/Group'
@@ -12,7 +13,7 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Switch from '@mui/material/Switch'
 import Typography from '@mui/material/Typography'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 
 import { useAppDispatch, useAppSelector } from '../app/hooks'
@@ -30,6 +31,16 @@ export default function ListDetailPage() {
     const { data: list, isLoading, isError } = useGetListQuery(listId, { skip: !listId })
     const [deleteList] = useDeleteListMutation()
     const [membersDialogOpen, setMembersDialogOpen] = useState(false)
+    const [isAddingItems, setIsAddingItems] = useState(false)
+    const addFormRef = useRef<HTMLDivElement>(null)
+    const itemCount = list?.items.length
+
+    // The list refetches after an add, so the form moves down only once new data arrives.
+    useEffect(() => {
+        if (isAddingItems) {
+            addFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
+    }, [isAddingItems, itemCount])
 
     if (isLoading) {
         return (
@@ -90,13 +101,7 @@ export default function ListDetailPage() {
                 )}
             </Box>
 
-            {canEdit ? (
-                <Paper variant="outlined" sx={{ p: 2 }}>
-                    <AddItemForm listId={list.id} />
-                </Paper>
-            ) : (
-                <Alert severity="info">You have view-only access to this list.</Alert>
-            )}
+            {!canEdit && <Alert severity="info">You have view-only access to this list.</Alert>}
 
             <Divider />
 
@@ -111,6 +116,22 @@ export default function ListDetailPage() {
             />
 
             <ShoppingItemList listId={list.id} items={visibleItems} readOnly={!canEdit} />
+
+            {canEdit &&
+                (isAddingItems ? (
+                    <Paper ref={addFormRef} variant="outlined" sx={{ p: 2, scrollMarginBottom: 16 }}>
+                        <AddItemForm listId={list.id} onClose={() => setIsAddingItems(false)} />
+                    </Paper>
+                ) : (
+                    <Button
+                        variant="outlined"
+                        startIcon={<AddIcon />}
+                        onClick={() => setIsAddingItems(true)}
+                        sx={{ alignSelf: 'flex-start' }}
+                    >
+                        Add item
+                    </Button>
+                ))}
 
             <ListMembersDialog
                 open={membersDialogOpen}

@@ -117,6 +117,14 @@ public static class ShoppingListItemEndpoints
             return denied;
         }
 
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["name"] = ["Name is required."]
+            });
+        }
+
         var item = await db.ShoppingListItems
             .FirstOrDefaultAsync(i => i.Id == itemId && i.ShoppingListId == listId, cancellationToken);
 
@@ -126,7 +134,7 @@ public static class ShoppingListItemEndpoints
         }
 
         item.Name = request.Name.Trim();
-        item.Quantity = request.Quantity;
+        item.Quantity = request.Quantity <= 0 ? 1 : request.Quantity;
         item.Unit = request.Unit;
         item.Category = request.Category;
         item.Note = request.Note;
