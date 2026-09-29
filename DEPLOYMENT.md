@@ -1,34 +1,30 @@
 ## Deployment Steps
 
-### DB
-
 1. `APP_USER=pastalistuser`
-1. Create user pastalistuser (useradd, subuid, subgid), if not already created
-   for the app below
-1. Create directory /projects/pasta-list-db
-1. curl database/compose.db.production.yaml -> compose.production.yaml
-1. check owner and permissions
-1. create the shared network joining the db and app containers (once per
-   server; skip if it already exists)
-   ```
+1. Create user pastalistuser (useradd, subuid, subgid), if not already created for the app below
+1. create the network
+   ```bash
    sudo -u $APP_USER podman network create pastalist-net
    ```
-1. set secrets
 
-   ```
+### DB
+
+1. Create directory /projects/pasta-list-db
+1. curl compose file
+1. check owner and permissions
+1. set secrets
+   ```bash
    read -rsp 'Secret: ' S; printf '%s' "$S" | sudo -u $APP_USER podman secret create db_password -; unset S
    ```
-
 1. start
-   ```
+   ```bash
    sudo -u $APP_USER podman-compose -f compose.db.production.yaml up -d
    ```
 
 ### App
 
-1. `APP_USER=pastalistuser`
 1. Create directory /projects/pasta-list
-1. curl compose.production.yaml
+1. curl compose file
 1. create .env.production
 1. check owner and permissions
 1. set secrets

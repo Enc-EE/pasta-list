@@ -2,27 +2,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "API (https)",
+            "name": "API",
             "type": "dotnet",
             "request": "launch",
-            "projectPath": "${workspaceFolder}/api/PastaList.Api/PastaList.Api.csproj",
-            "launchConfigurationId": "https"
+            "projectPath": "${workspaceFolder}/api/PastaList.Api/PastaList.Api.csproj"
         },
         {
-            "name": "Web (Chrome)",
+            "name": "Web (Brave)",
             "type": "chrome",
             "request": "launch",
-            "url": "http://localhost:5173",
+            "url": "https://localhost:5173",
             "webRoot": "${workspaceFolder}/web/src",
-            "preLaunchTask": "web: dev"
+            "runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
         }
     ],
     "compounds": [
         {
             "name": "Full stack",
             "configurations": [
-                "API (https)",
-                "Web (Chrome)"
+                "API",
+                "Web (Brave)"
             ]
         }
     ]

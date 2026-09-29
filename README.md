@@ -190,6 +190,6 @@ configuration through environment variables or a secret store.
 ## Custom TODO
 
 - Check SSL Termination hosting strategy
-- DB creation and migrations
 - verify sharing testing
 - generate rtk query
+- localization

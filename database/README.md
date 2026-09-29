@@ -1,7 +1,5 @@
 # Pasta List database
 
-PostgreSQL 17 running locally in a **Podman** container.
-
 | Setting  | Value           |
 | -------- | --------------- |
 | Host     | `localhost`     |
@@ -11,62 +9,23 @@ PostgreSQL 17 running locally in a **Podman** container.
 | Password | `pastalist_dev` |
 | Schema   | `pasta`         |
 
-> These credentials are **local development only**. Never reuse them anywhere else.
-> Production credentials must come from environment variables / a secret store,
-> never from `appsettings.json`.
-
 ## Quick start
 
 ```bash
 cd database
-./scripts/db-up.sh      # create + start the container (idempotent)
-./scripts/db-logs.sh    # follow logs
-./scripts/db-psql.sh    # open a psql shell inside the container
-./scripts/db-down.sh    # stop the container (data is kept in the volume)
-./scripts/db-reset.sh   # DESTRUCTIVE: drop container + volume, then recreate
+podman-compose -f database/compose.dev.yaml up -d
+podman-compose -f database/compose.dev.yaml down
 ```
 
-Alternatively with compose:
-
-```bash
-podman compose -f database/compose.yaml up -d
-podman compose -f database/compose.yaml down
-```
-
-On macOS a Podman machine must be running first:
+## Troubleshooting / Commands
 
 ```bash
 podman machine init   # only once
 podman machine start
+
+podman-compose -f database/compose.dev.yaml logs
+podman-compose -f database/compose.dev.yaml down -v
 ```
-
-## Schema ownership
-
-The schema is owned by **EF Core migrations** in `api/PastaList.Api`.
-`init/01-init.sql` only creates the database, role and the `pasta` schema —
-it must never contain table definitions.
-
-### Working with migrations
-
-```bash
-# once per machine
-dotnet tool install --global dotnet-ef
-
-cd api/PastaList.Api
-dotnet ef migrations add <Name>
-dotnet ef database update
-dotnet ef migrations script --idempotent -o ../../database/artifacts/schema.sql
-```
-
-The API applies pending migrations automatically on startup **in Development only**
-(see `Program.cs`).
-
-## Tables
-
-| Table                       | Purpose                                          |
-| --------------------------- | ------------------------------------------------ |
-| `pasta.shopping_lists`      | One shopping list.                               |
-| `pasta.shopping_list_items` | Items of a list; cascade-deleted with the list.  |
 
 ## Conventions
 
@@ -82,9 +41,3 @@ The API applies pending migrations automatically on startup **in Development onl
 podman exec pastalist-db pg_dump -U pastalist pastalist > backup.sql
 cat backup.sql | podman exec -i pastalist-db psql -U pastalist -d pastalist
 ```
-
-## TODO
-
-- [ ] Add a dedicated read-only role for reporting.
-- [ ] Decide on a seeding strategy for non-development environments.
-- [ ] Add connection pooling (PgBouncer) once load justifies it.
