@@ -29,6 +29,8 @@ export default function AddItemForm({ listId, onClose }: AddItemFormProps) {
             return
         }
 
+        nameInputRef.current?.focus({ preventScroll: true })
+
         try {
             await createItem({
                 listId,
@@ -41,7 +43,6 @@ export default function AddItemForm({ listId, onClose }: AddItemFormProps) {
 
             setName('')
             setQuantity('1')
-            nameInputRef.current?.focus()
         } catch {
             dispatch(snackbarShown({ message: 'Could not add the item.', severity: 'error' }))
         }
@@ -77,6 +78,11 @@ export default function AddItemForm({ listId, onClose }: AddItemFormProps) {
                     type="submit"
                     variant="contained"
                     disabled={isLoading || !name.trim()}
+                    onPointerDown={(event) => {
+                        if (event.isPrimary && event.button === 0) {
+                            event.preventDefault()
+                        }
+                    }}
                     sx={{ flex: { xs: 1, sm: 'none' } }}
                 >
                     Add

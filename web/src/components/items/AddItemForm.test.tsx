@@ -39,6 +39,47 @@ describe('AddItemForm', () => {
         expect(itemField).toHaveFocus()
     })
 
+    it('focuses the item field before the save completes', async () => {
+        let finishSave = () => {}
+        const pendingSave = new Promise<void>((resolve) => {
+            finishSave = resolve
+        })
+        createItem.mockReturnValue({ unwrap: () => pendingSave })
+        const user = userEvent.setup()
+        render(<AddItemForm listId="list-1" onClose={vi.fn()} />)
+
+        const itemField = screen.getByRole('textbox', { name: 'Item' })
+        await user.type(itemField, 'Penne')
+        await user.click(screen.getByRole('button', { name: 'Quantity 3' }))
+        expect(itemField).not.toHaveFocus()
+        await user.click(screen.getByRole('button', { name: 'Add' }))
+
+        expect(createItem).toHaveBeenCalledOnce()
+        expect(itemField).toHaveFocus()
+        expect(itemField).toHaveValue('Penne')
+
+        finishSave()
+        await waitFor(() => expect(itemField).toHaveValue(''))
+        expect(itemField).toHaveFocus()
+    })
+
+    it('keeps the item field focused while pressing Add', async () => {
+        createItem.mockReturnValue({ unwrap: () => Promise.resolve() })
+        const user = userEvent.setup()
+        render(<AddItemForm listId="list-1" onClose={vi.fn()} />)
+
+        const itemField = screen.getByRole('textbox', { name: 'Item' })
+        await user.type(itemField, 'Penne')
+        await user.pointer({
+            target: screen.getByRole('button', { name: 'Add' }),
+            keys: '[MouseLeft>]',
+        })
+
+        expect(itemField).toHaveFocus()
+        await user.pointer({ keys: '[/MouseLeft]' })
+        await waitFor(() => expect(itemField).toHaveValue(''))
+    })
+
     it('sets the quantity from a quick quantity button', async () => {
         createItem.mockReturnValue({ unwrap: () => Promise.resolve() })
         const user = userEvent.setup()

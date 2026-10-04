@@ -134,7 +134,8 @@ public static class AuthEndpoints
 
         await httpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
-            principal);
+            principal,
+            new AuthenticationProperties { IsPersistent = true });
 
         return Results.Ok(new CurrentUserDto(user.Id, user.Email, user.CreatedAt, user.LastLoginAt));
     }
