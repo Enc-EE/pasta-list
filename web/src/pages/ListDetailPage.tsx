@@ -9,21 +9,19 @@ import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import Divider from '@mui/material/Divider'
-import FormControlLabel from '@mui/material/FormControlLabel'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
-import Switch from '@mui/material/Switch'
 import Typography from '@mui/material/Typography'
 import { useEffect, useRef, useState } from 'react'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 
-import { useAppDispatch, useAppSelector } from '../app/hooks'
+import { useAppDispatch } from '../app/hooks'
 import { 
     useDeleteCheckedItemsMutation, 
     useDeleteListMutation, 
     useGetListQuery 
 } from '../features/api/pastaListApi'
-import { hideCheckedItemsToggled, snackbarShown } from '../features/ui/uiSlice'
+import { snackbarShown } from '../features/ui/uiSlice'
 import AddItemForm from '../components/items/AddItemForm'
 import ShoppingItemList from '../components/items/ShoppingItemList'
 import ListMembersDialog from '../components/lists/ListMembersDialog'
@@ -32,7 +30,6 @@ export default function ListDetailPage() {
     const { listId = '' } = useParams<{ listId: string }>()
     const dispatch = useAppDispatch()
     const navigate = useNavigate()
-    const hideCheckedItems = useAppSelector((state) => state.ui.hideCheckedItems)
     const { data: list, isLoading, isError } = useGetListQuery(listId, { skip: !listId })
     const [deleteList] = useDeleteListMutation()
     const [deleteCheckedItems] = useDeleteCheckedItemsMutation()
@@ -60,7 +57,7 @@ export default function ListDetailPage() {
         return <Alert severity="error">This list could not be loaded.</Alert>
     }
 
-    const visibleItems = hideCheckedItems ? list.items.filter((item) => !item.isChecked) : list.items
+    const visibleItems = list.items
     const canEdit = list.role !== 'Viewer'
     const isOwner = list.role === 'Owner'
 
@@ -127,16 +124,6 @@ export default function ListDetailPage() {
             {!canEdit && <Alert severity="info">You have view-only access to this list.</Alert>}
 
             <Divider />
-
-            <FormControlLabel
-                control={
-                    <Switch
-                        checked={hideCheckedItems}
-                        onChange={() => dispatch(hideCheckedItemsToggled())}
-                    />
-                }
-                label="Hide checked items"
-            />
 
             <ShoppingItemList listId={list.id} items={visibleItems} readOnly={!canEdit} />
  
