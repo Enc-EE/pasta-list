@@ -6,11 +6,23 @@ Guidance for AI coding agents working in this repository. Read this first.
 
 **Pasta List** is a shopping list app.
 
-| Folder      | Contents                                                         |
-| ----------- | ---------------------------------------------------------------- |
-| `web/`      | React 19 + TypeScript + Vite + MUI v9 + Redux Toolkit (RTK Query) |
-| `api/`      | ASP.NET Core 9 minimal API + EF Core 9 (Npgsql)                   |
+| Folder      | Contents                                                               |
+| ----------- | ---------------------------------------------------------------------- |
+| `web/`      | React 19 + TypeScript + Vite + MUI v9 + Redux Toolkit (RTK Query)      |
+| `api/`      | ASP.NET Core 9 minimal API + EF Core 9 (Npgsql)                        |
 | `database/` | Docs + scripts for the local PostgreSQL Podman container. No app code. |
+
+## Non-negotiables
+
+- Verify every change: `cd web && pnpm lint && pnpm test && pnpm build` and
+  `cd api && dotnet build && dotnet test`.
+- The frontend uses **pnpm**, never npm or yarn.
+- Server state belongs in RTK Query, UI state in a Redux slice. Never duplicate.
+- API endpoints return DTOs from `Contracts/`, never EF entities.
+- Schema changes need an EF migration; `database/` holds no table DDL.
+- MUI v9: system props such as `alignItems` go into `sx`, not directly on the component.
+- Never commit real secrets. Local dev credentials are localhost-only.
+- Keep diffs minimal and scoped; do not reformat unrelated code.
 
 ## Setup
 
@@ -84,7 +96,7 @@ Testing Library under `web/src/**/*.test.tsx`.
 
 - TypeScript: no `any`, no non-null assertions except the documented `#root` lookup.
 - C#: nullable reference types are enabled; do not disable them or use `!` to silence warnings.
-- Comments explain *why*, not *what*. Mark deliberate gaps with `// TODO:`.
+- Comments explain _why_, not _what_. Mark deliberate gaps with `// TODO:`.
 - Keep changes scoped to the request. Do not reformat or refactor unrelated files.
 
 ## Security

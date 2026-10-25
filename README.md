@@ -21,7 +21,7 @@ A shopping list app. React frontend, C# API, PostgreSQL.
 ```bash
 # 1. database
 podman machine start
-./database/scripts/db-up.sh
+podman-compose -f database/compose.dev.yaml up -d
 
 # 2. api  (applies migrations + seeds demo data in Development)
 cd api/PastaList.Api
@@ -168,7 +168,6 @@ web/src/
 ## AI / agent support
 
 - [AGENTS.md](AGENTS.md) — architecture rules, setup and verification commands
-- [.github/copilot-instructions.md](.github/copilot-instructions.md) — repo-wide Copilot guidance
 - [.github/instructions/](.github/instructions) — path-scoped rules for frontend, API and database
 - [.github/prompts/](.github/prompts) — reusable prompts for common cross-stack tasks
 - [.vscode/mcp.json](.vscode/mcp.json) — optional PostgreSQL MCP server for schema-aware agents
@@ -189,9 +188,17 @@ configuration through environment variables or a secret store.
 
 ## Custom TODO
 
-- Check SSL Termination hosting strategy
-- verify sharing testing
-- generate rtk query
 - localization
-- PWA
 - icon
+- PWA
+- items -> font bigger, numbers, remove delete
+- sort
+- checked on top (ordered by checked date)
+- delete all checked
+- input mode -> fixed form that adds in background
+
+- delete account
+- buy later button
+- meal plan
+- dotnet Lat's Encrypt instead of Caddy SSL Termination
+- generate rtk query

@@ -4,10 +4,12 @@ import TextField from '@mui/material/TextField'
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
 
 import { useAppDispatch } from '../../app/hooks'
-import { useUpdateItemMutation } from '../../features/api/pastaListApi'
+import { useDeleteItemMutation, useUpdateItemMutation } from '../../features/api/pastaListApi'
 import { snackbarShown } from '../../features/ui/uiSlice'
 import type { ShoppingListItem } from '../../types/shoppingList'
 import QuantityInput from './QuantityInput'
+import IconButton from '@mui/material/IconButton'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined'
 
 export interface EditItemFormProps {
     listId: string
@@ -18,8 +20,17 @@ export interface EditItemFormProps {
 export default function EditItemForm({ listId, item, onDone }: EditItemFormProps) {
     const dispatch = useAppDispatch()
     const [updateItem, { isLoading }] = useUpdateItemMutation()
+    const [deleteItem] = useDeleteItemMutation()
     const [name, setName] = useState(item.name)
     const [quantity, setQuantity] = useState(String(item.quantity))
+
+    const remove = async (itemId: string) => {
+        try {
+            await deleteItem({ listId, itemId }).unwrap()
+        } catch {
+            dispatch(snackbarShown({ message: 'Could not delete the item.', severity: 'error' }))
+        }
+    }
 
     const submit = async (event: FormEvent) => {
         event.preventDefault()
@@ -75,6 +86,9 @@ export default function EditItemForm({ listId, item, onDone }: EditItemFormProps
                 size="small"
             />
             <QuantityInput value={quantity} onChange={setQuantity} />
+            <IconButton aria-label={`Delete ${item.name}`} onClick={() => remove(item.id)}>
+                <DeleteOutlineIcon />
+            </IconButton>
             <Stack direction="row" spacing={1}>
                 <Button
                     type="submit"
