@@ -20,6 +20,7 @@ public static class ShoppingListEndpoints
         group.MapPost("/", CreateList).WithName("CreateShoppingList");
         group.MapPut("/{id:guid}", UpdateList).WithName("UpdateShoppingList");
         group.MapDelete("/{id:guid}", DeleteList).WithName("DeleteShoppingList");
+        group.MapDelete("/{id:guid}/items/checked", DeleteCheckedItems).WithName("DeleteCheckedItems");
 
         return app;
     }
@@ -159,5 +160,25 @@ public static class ShoppingListEndpoints
             .ExecuteDeleteAsync(cancellationToken);
 
         return deleted == 0 ? Results.NotFound() : Results.NoContent();
+    }
+
+    private static async Task<IResult> DeleteCheckedItems(
+        Guid id,
+        PastaListDbContext db,
+        ICurrentUser currentUser,
+        CancellationToken cancellationToken)
+    {
+        var userId = currentUser.Id!.Value;
+        var role = await db.GetMemberRoleAsync(id, userId, cancellationToken);
+        if (role is null)
+        {
+            return Results.NotFound();
+        }
+
+        var deleted = await db.ShoppingListItems
+            .Where(i => i.ShoppingListId == id && i.IsChecked)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        return Results.NoContent();
     }
 }

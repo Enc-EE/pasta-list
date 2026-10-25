@@ -1,6 +1,7 @@
 import AddIcon from '@mui/icons-material/Add'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined'
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep'
 import GroupIcon from '@mui/icons-material/Group'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -17,7 +18,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 
 import { useAppDispatch, useAppSelector } from '../app/hooks'
-import { useDeleteListMutation, useGetListQuery } from '../features/api/pastaListApi'
+import { 
+    useDeleteCheckedItemsMutation, 
+    useDeleteListMutation, 
+    useGetListQuery 
+} from '../features/api/pastaListApi'
 import { hideCheckedItemsToggled, snackbarShown } from '../features/ui/uiSlice'
 import AddItemForm from '../components/items/AddItemForm'
 import ShoppingItemList from '../components/items/ShoppingItemList'
@@ -30,6 +35,7 @@ export default function ListDetailPage() {
     const hideCheckedItems = useAppSelector((state) => state.ui.hideCheckedItems)
     const { data: list, isLoading, isError } = useGetListQuery(listId, { skip: !listId })
     const [deleteList] = useDeleteListMutation()
+    const [deleteCheckedItems] = useDeleteCheckedItemsMutation()
     const [membersDialogOpen, setMembersDialogOpen] = useState(false)
     const [isAddingItems, setIsAddingItems] = useState(false)
     const addFormRef = useRef<HTMLDivElement>(null)
@@ -68,6 +74,23 @@ export default function ListDetailPage() {
             navigate('/', { replace: true })
         } catch {
             dispatch(snackbarShown({ message: 'Could not delete the list.', severity: 'error' }))
+        }
+    }
+
+    const removeCheckedItems = async () => {
+        const checkedCount = list.items.filter((i) => i.isChecked).length
+        if (checkedCount === 0) {
+            return
+        }
+
+        if (!window.confirm(`Delete ${checkedCount} checked items? This cannot be undone.`)) {
+            return
+        }
+
+        try {
+            await deleteCheckedItems(list.id).unwrap()
+        } catch {
+            dispatch(snackbarShown({ message: 'Could not delete checked items.', severity: 'error' }))
         }
     }
 
@@ -116,23 +139,40 @@ export default function ListDetailPage() {
             />
 
             <ShoppingItemList listId={list.id} items={visibleItems} readOnly={!canEdit} />
+ 
+            {canEdit && (
+                <Box sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, p: 2, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider', zIndex: 10 }}>
+                    <Stack sx={{ direction: 'row', justifyContent: 'center' }}>
+                        {isAddingItems ? (
+                            <Paper ref={addFormRef} variant="outlined" sx={{ p: 2, scrollMarginBottom: 16, width: '100%', maxWidth: 600 }}>
+                                <AddItemForm listId={list.id} onClose={() => setIsAddingItems(false)} />
+                            </Paper>
+                         ) : (
+                             <Stack direction="row" spacing={1}>
+                                 <Button
+                                     variant="contained"
+                                     startIcon={<AddIcon />}
+                                     onClick={() => setIsAddingItems(true)}
+                                 >
+                                     Add item
+                                 </Button>
+                                 <Button
+                                     variant="outlined"
+                                     color="error"
+                                     startIcon={<DeleteSweepIcon />}
+                                     onClick={removeCheckedItems}
+                                 >
+                                     Clear checked
+                                 </Button>
+                             </Stack>
+                         )}
 
-            {canEdit &&
-                (isAddingItems ? (
-                    <Paper ref={addFormRef} variant="outlined" sx={{ p: 2, scrollMarginBottom: 16 }}>
-                        <AddItemForm listId={list.id} onClose={() => setIsAddingItems(false)} />
-                    </Paper>
-                ) : (
-                    <Button
-                        variant="outlined"
-                        startIcon={<AddIcon />}
-                        onClick={() => setIsAddingItems(true)}
-                        sx={{ alignSelf: 'flex-start' }}
-                    >
-                        Add item
-                    </Button>
-                ))}
-
+                    </Stack>
+                </Box>
+            )}
+ 
+            <Box sx={{ height: 80 }} />
+ 
             <ListMembersDialog
                 open={membersDialogOpen}
                 onClose={() => setMembersDialogOpen(false)}

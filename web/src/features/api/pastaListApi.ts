@@ -146,6 +146,14 @@ export const pastaListApi = createApi({
             invalidatesTags: (_result, _error, { listId }) => [{ type: 'ShoppingList', id: listId }],
         }),
 
+        deleteCheckedItems: builder.mutation<void, string>({
+            query: (listId) => ({
+                url: `lists/${listId}/items/checked`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: (_result, _error, listId) => [{ type: 'ShoppingList', id: listId }],
+        }),
+
         getMembers: builder.query<ShoppingListMember[], string>({
             query: (listId) => `lists/${listId}/members`,
             providesTags: (result, _error, listId) => [
@@ -211,6 +219,7 @@ export const {
     useUpdateItemMutation,
     useToggleItemMutation,
     useDeleteItemMutation,
+    useDeleteCheckedItemsMutation,
     useGetMembersQuery,
     useInviteMemberMutation,
     useUpdateMemberRoleMutation,

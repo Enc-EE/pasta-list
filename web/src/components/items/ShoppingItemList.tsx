@@ -7,8 +7,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
-
-import { useAppDispatch } from "../../app/hooks";
+ 
 import { useToggleItemMutation } from "../../features/api/pastaListApi";
 import type { ShoppingListItem } from "../../types/shoppingList";
 import EditItemForm from "./EditItemForm";
@@ -24,7 +23,6 @@ export default function ShoppingItemList({
   items,
   readOnly = false,
 }: ShoppingItemListProps) {
-  const dispatch = useAppDispatch();
   const [toggleItem] = useToggleItemMutation();
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
