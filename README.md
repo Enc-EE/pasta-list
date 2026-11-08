@@ -191,11 +191,8 @@ configuration through environment variables or a secret store.
 - localization
 - icon
 - PWA
-- items -> font bigger, numbers, remove delete
 - sort
 - checked on top (ordered by checked date)
-- delete all checked
-- input mode -> fixed form that adds in background
 
 - delete account
 - buy later button

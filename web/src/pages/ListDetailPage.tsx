@@ -9,9 +9,11 @@ import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import Divider from '@mui/material/Divider'
+import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import { useTheme } from '@mui/material/styles'
 import { useEffect, useRef, useState } from 'react'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 
@@ -30,6 +32,7 @@ export default function ListDetailPage() {
     const { listId = '' } = useParams<{ listId: string }>()
     const dispatch = useAppDispatch()
     const navigate = useNavigate()
+    const theme = useTheme()
     const { data: list, isLoading, isError } = useGetListQuery(listId, { skip: !listId })
     const [deleteList] = useDeleteListMutation()
     const [deleteCheckedItems] = useDeleteCheckedItemsMutation()
@@ -128,33 +131,47 @@ export default function ListDetailPage() {
             <ShoppingItemList listId={list.id} items={visibleItems} readOnly={!canEdit} />
  
             {canEdit && (
-                <Box sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, p: 2, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider', zIndex: 10 }}>
-                    <Stack sx={{ direction: 'row', justifyContent: 'center' }}>
-                        {isAddingItems ? (
-                            <Paper ref={addFormRef} variant="outlined" sx={{ p: 2, scrollMarginBottom: 16, width: '100%', maxWidth: 600 }}>
-                                <AddItemForm listId={list.id} onClose={() => setIsAddingItems(false)} />
-                            </Paper>
-                         ) : (
-                             <Stack direction="row" spacing={1}>
-                                 <Button
-                                     variant="contained"
-                                     startIcon={<AddIcon />}
-                                     onClick={() => setIsAddingItems(true)}
-                                 >
-                                     Add item
-                                 </Button>
-                                 <Button
-                                     variant="outlined"
-                                     color="error"
-                                     startIcon={<DeleteSweepIcon />}
-                                     onClick={removeCheckedItems}
-                                 >
-                                     Clear checked
-                                 </Button>
-                             </Stack>
-                         )}
-
-                    </Stack>
+                <Box sx={{ position: 'fixed', right: 24, bottom: 24, zIndex: 10 }}>
+                    {isAddingItems ? (
+                        <Paper
+                            ref={addFormRef}
+                            variant="outlined"
+                            elevation={4}
+                            sx={{ p: 2, width: 'min(90vw, 600px)', bgcolor: 'background.paper' }}
+                        >
+                            <AddItemForm listId={list.id} onClose={() => setIsAddingItems(false)} />
+                        </Paper>
+                    ) : (
+                        <Stack direction="row" spacing={1}>
+                            <IconButton
+                                aria-label="Add item"
+                                color="primary"
+                                onClick={() => setIsAddingItems(true)}
+                                sx={{
+                                    bgcolor: 'primary.main',
+                                    color: 'primary.contrastText',
+                                    boxShadow: 3,
+                                    '&:hover': { bgcolor: 'primary.dark' },
+                                }}
+                            >
+                                <AddIcon />
+                            </IconButton>
+                            <IconButton
+                                aria-label="Clear checked items"
+                                color="error"
+                                onClick={removeCheckedItems}
+                                sx={{
+                                    bgcolor: 'background.paper',
+                                    boxShadow: 3,
+                                    '&:hover': {
+                                        bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'grey.800',
+                                    },
+                                }}
+                            >
+                                <DeleteSweepIcon />
+                            </IconButton>
+                        </Stack>
+                    )}
                 </Box>
             )}
  
