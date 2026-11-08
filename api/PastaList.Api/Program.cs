@@ -218,6 +218,7 @@ app.MapAuthEndpoints();
 app.MapShoppingListEndpoints();
 app.MapShoppingListItemEndpoints();
 app.MapShoppingListMemberEndpoints();
+app.MapMealPlanEndpoints();
 
 app.Map("/api/{**rest}", () => Results.Problem(
     statusCode: StatusCodes.Status404NotFound,

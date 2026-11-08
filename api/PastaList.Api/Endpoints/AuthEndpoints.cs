@@ -120,6 +120,32 @@ public static class AuthEndpoints
             invitation.AcceptedAt = DateTimeOffset.UtcNow;
         }
 
+        var pendingMealPlanInvitations = await db.MealPlanInvitations
+            .Where(invitation => invitation.Email == email
+                && invitation.AcceptedAt == null
+                && invitation.ExpiresAt > DateTimeOffset.UtcNow)
+            .OrderBy(invitation => invitation.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        var alreadyHasMealPlan = await db.MealPlanMembers
+            .AnyAsync(member => member.UserId == user.Id, cancellationToken);
+
+        foreach (var invitation in pendingMealPlanInvitations)
+        {
+            if (!alreadyHasMealPlan)
+            {
+                db.MealPlanMembers.Add(new MealPlanMember
+                {
+                    MealPlanId = invitation.MealPlanId,
+                    UserId = user.Id,
+                    Role = invitation.Role
+                });
+                alreadyHasMealPlan = true;
+            }
+
+            invitation.AcceptedAt = DateTimeOffset.UtcNow;
+        }
+
         await db.SaveChangesAsync(cancellationToken);
 
         var claims = new[]

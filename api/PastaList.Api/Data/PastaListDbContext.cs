@@ -17,6 +17,14 @@ public class PastaListDbContext(DbContextOptions<PastaListDbContext> options) : 
 
     public DbSet<ShoppingListInvitation> ShoppingListInvitations => Set<ShoppingListInvitation>();
 
+    public DbSet<MealPlan> MealPlans => Set<MealPlan>();
+
+    public DbSet<MealPlanEntry> MealPlanEntries => Set<MealPlanEntry>();
+
+    public DbSet<MealPlanMember> MealPlanMembers => Set<MealPlanMember>();
+
+    public DbSet<MealPlanInvitation> MealPlanInvitations => Set<MealPlanInvitation>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("pasta");
@@ -54,6 +62,14 @@ public class PastaListDbContext(DbContextOptions<PastaListDbContext> options) : 
             else if (entry.Entity is ShoppingListItem item)
             {
                 item.UpdatedAt = now;
+            }
+            else if (entry.Entity is MealPlan mealPlan)
+            {
+                mealPlan.UpdatedAt = now;
+            }
+            else if (entry.Entity is MealPlanEntry mealPlanEntry)
+            {
+                mealPlanEntry.UpdatedAt = now;
             }
         }
     }

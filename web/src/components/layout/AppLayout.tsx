@@ -1,10 +1,13 @@
 import DarkModeIcon from '@mui/icons-material/DarkMode'
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import LogoutIcon from '@mui/icons-material/Logout'
 import RestaurantIcon from '@mui/icons-material/Restaurant'
+import TodayIcon from '@mui/icons-material/Today'
 import AppBar from '@mui/material/AppBar'
 import Avatar from '@mui/material/Avatar'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
@@ -12,6 +15,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
+import Stack from '@mui/material/Stack'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { useState, type MouseEvent } from 'react'
@@ -53,6 +57,42 @@ export default function AppLayout() {
                     >
                         Pasta List
                     </Typography>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mr: 1 }}>
+                        <Button
+                            color="inherit"
+                            component={RouterLink}
+                            to="/"
+                            sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+                        >
+                            Lists
+                        </Button>
+                        <Button
+                            color="inherit"
+                            component={RouterLink}
+                            to="/meal-plan"
+                            sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+                        >
+                            Meal plan
+                        </Button>
+                        <IconButton
+                            color="inherit"
+                            component={RouterLink}
+                            to="/"
+                            aria-label="Shopping lists"
+                            sx={{ display: { xs: 'inline-flex', sm: 'none' } }}
+                        >
+                            <FormatListBulletedIcon />
+                        </IconButton>
+                        <IconButton
+                            color="inherit"
+                            component={RouterLink}
+                            to="/meal-plan"
+                            aria-label="Meal plan"
+                            sx={{ display: { xs: 'inline-flex', sm: 'none' } }}
+                        >
+                            <TodayIcon />
+                        </IconButton>
+                    </Stack>
                     <IconButton
                         color="inherit"
                         onClick={() => dispatch(themeModeToggled())}

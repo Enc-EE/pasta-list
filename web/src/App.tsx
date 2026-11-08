@@ -9,6 +9,7 @@ import AppLayout from './components/layout/AppLayout'
 import ListDetailPage from './pages/ListDetailPage'
 import ListsPage from './pages/ListsPage'
 import LoginPage from './pages/LoginPage'
+import MealPlanPage from './pages/MealPlanPage'
 import NotFoundPage from './pages/NotFoundPage'
 import { buildTheme } from './theme/theme'
 
@@ -26,6 +27,7 @@ export default function App() {
             <Route index element={<ListsPage />} />
             <Route path="lists" element={<Navigate to="/" replace />} />
             <Route path="lists/:listId" element={<ListDetailPage />} />
+            <Route path="meal-plan" element={<MealPlanPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>

@@ -62,6 +62,124 @@ namespace PastaList.Api.Data.Migrations
                     b.ToTable("login_codes", "pasta");
                 });
 
+            modelBuilder.Entity("PastaList.Api.Domain.MealPlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("meal_plans", "pasta");
+                });
+
+            modelBuilder.Entity("PastaList.Api.Domain.MealPlanEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("MealPlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MealPlanId", "Date", "Slot");
+
+                    b.ToTable("meal_plan_entries", "pasta");
+                });
+
+            modelBuilder.Entity("PastaList.Api.Domain.MealPlanInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("MealPlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email", "AcceptedAt");
+
+                    b.HasIndex("MealPlanId", "Email")
+                        .IsUnique();
+
+                    b.ToTable("meal_plan_invitations", "pasta");
+                });
+
+            modelBuilder.Entity("PastaList.Api.Domain.MealPlanMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("MealPlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.HasIndex("MealPlanId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("meal_plan_members", "pasta");
+                });
+
             modelBuilder.Entity("PastaList.Api.Domain.ShoppingList", b =>
                 {
                     b.Property<Guid>("Id")
@@ -241,6 +359,47 @@ namespace PastaList.Api.Data.Migrations
                     b.ToTable("users", "pasta");
                 });
 
+            modelBuilder.Entity("PastaList.Api.Domain.MealPlanEntry", b =>
+                {
+                    b.HasOne("PastaList.Api.Domain.MealPlan", "MealPlan")
+                        .WithMany("Entries")
+                        .HasForeignKey("MealPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MealPlan");
+                });
+
+            modelBuilder.Entity("PastaList.Api.Domain.MealPlanInvitation", b =>
+                {
+                    b.HasOne("PastaList.Api.Domain.MealPlan", "MealPlan")
+                        .WithMany("Invitations")
+                        .HasForeignKey("MealPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MealPlan");
+                });
+
+            modelBuilder.Entity("PastaList.Api.Domain.MealPlanMember", b =>
+                {
+                    b.HasOne("PastaList.Api.Domain.MealPlan", "MealPlan")
+                        .WithMany("Members")
+                        .HasForeignKey("MealPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PastaList.Api.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MealPlan");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("PastaList.Api.Domain.ShoppingListInvitation", b =>
                 {
                     b.HasOne("PastaList.Api.Domain.ShoppingList", "ShoppingList")
@@ -280,6 +439,15 @@ namespace PastaList.Api.Data.Migrations
                     b.Navigation("ShoppingList");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PastaList.Api.Domain.MealPlan", b =>
+                {
+                    b.Navigation("Entries");
+
+                    b.Navigation("Invitations");
+
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("PastaList.Api.Domain.ShoppingList", b =>
