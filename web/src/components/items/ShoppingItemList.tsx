@@ -1,4 +1,5 @@
 import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -58,7 +59,16 @@ export default function ShoppingItemList({
             disablePadding
             secondaryAction={
               readOnly ? undefined : (
-                <Stack direction="row">
+                <Stack direction="row" spacing={1}>
+                  <IconButton
+                    sx={{
+                      boxShadow: 2,
+                    }}
+                    aria-label={`Edit ${item.name}`}
+                    onClick={() => setEditingItemId(item.id)}
+                  >
+                    <EditOutlinedIcon />
+                  </IconButton>
                   <IconButton
                     sx={{
                       boxShadow: 2,
@@ -75,10 +85,9 @@ export default function ShoppingItemList({
             }
           >
             <ListItemButton
-              onClick={() => setEditingItemId(item.id)}
               disabled={readOnly}
               // dense
-              sx={{ pr: readOnly ? undefined : 12 }}
+              sx={{ pr: readOnly ? undefined : 16 }}
             >
               {/* <ListItemIcon>
                                 <Checkbox edge="start" checked={item.isChecked} tabIndex={-1} disableRipple />
@@ -87,7 +96,7 @@ export default function ShoppingItemList({
                 primary={
                   item.quantity === 1
                     ? item.name
-                    : `${item.quantity} x ${item.name}`
+                    : `${item.quantity} ${item.name}`
                 }
                 // secondary={[item.quantity, item.unit].filter(Boolean).join(' ')}
               />
