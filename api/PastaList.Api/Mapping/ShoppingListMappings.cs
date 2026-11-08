@@ -24,7 +24,7 @@ public static class ShoppingListMappings
         list.CreatedAt,
         list.UpdatedAt,
         role.ToString(),
-        list.Items.OrderBy(i => i.SortOrder).Select(ToDto).ToList());
+        list.Items.OrderBy(i => i.SortOrder).ThenBy(i => i.Id).Select(ToDto).ToList());
 
     public static ShoppingListSummaryDto ToSummaryDto(this ShoppingList list, ShoppingListRole role) => new(
         list.Id,

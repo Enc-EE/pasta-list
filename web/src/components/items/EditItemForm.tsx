@@ -40,7 +40,7 @@ export default function EditItemForm({ listId, item, onDone }: EditItemFormProps
         }
 
         try {
-            // PUT replaces the whole item, so fields this form does not edit are sent unchanged.
+            // Preserve fields this form does not edit; position has a separate endpoint.
             await updateItem({
                 listId,
                 itemId: item.id,
@@ -51,7 +51,6 @@ export default function EditItemForm({ listId, item, onDone }: EditItemFormProps
                     category: item.category,
                     note: item.note,
                     isChecked: item.isChecked,
-                    sortOrder: item.sortOrder,
                 },
             }).unwrap()
 

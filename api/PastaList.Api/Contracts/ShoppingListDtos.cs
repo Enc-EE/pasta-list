@@ -49,5 +49,8 @@ public record UpdateShoppingListItemRequest(
     string? Unit,
     string? Category,
     string? Note,
-    bool IsChecked,
-    int SortOrder);
+    bool IsChecked);
+
+public record UpdateShoppingListItemPositionRequest(
+    Guid? PreviousItemId,
+    Guid? NextItemId);

@@ -1,111 +1,100 @@
-import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import IconButton from "@mui/material/IconButton";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemText from "@mui/material/ListItemText";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import { useState } from "react";
- 
-import { useToggleItemMutation } from "../../features/api/pastaListApi";
-import type { ShoppingListItem } from "../../types/shoppingList";
-import EditItemForm from "./EditItemForm";
+import {
+    DndContext,
+    KeyboardSensor,
+    PointerSensor,
+    closestCenter,
+    useSensor,
+    useSensors,
+    type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import List from '@mui/material/List'
+import Typography from '@mui/material/Typography'
+import { useState } from 'react'
 
-interface ShoppingItemListProps {
-  listId: string;
-  items: ShoppingListItem[];
-  readOnly?: boolean;
+import { useAppDispatch } from '../../app/hooks'
+import {
+    useToggleItemMutation,
+    useUpdateItemPositionMutation,
+} from '../../features/api/pastaListApi'
+import { snackbarShown } from '../../features/ui/uiSlice'
+import type { ShoppingListItem } from '../../types/shoppingList'
+import SortableShoppingItem from './SortableShoppingItem'
+import { getShoppingItemPositionUpdate } from './shoppingItemOrdering'
+
+export interface ShoppingItemListProps {
+    listId: string
+    items: ShoppingListItem[]
+    readOnly?: boolean
 }
 
-export default function ShoppingItemList({
-  listId,
-  items,
-  readOnly = false,
-}: ShoppingItemListProps) {
-  const [toggleItem] = useToggleItemMutation();
-  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+export default function ShoppingItemList({ listId, items, readOnly = false }: ShoppingItemListProps) {
+    const dispatch = useAppDispatch()
+    const [updateItemPosition, { isLoading: isReordering }] = useUpdateItemPositionMutation()
+    const [toggleItem, { isLoading: isToggling }] = useToggleItemMutation()
+    const [editingItemId, setEditingItemId] = useState<string | null>(null)
+    const isMutationPending = isReordering || isToggling
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    )
 
-  if (items.length === 0) {
+    if (items.length === 0) {
+        return <Typography color="text.secondary">Nothing to buy here. Add an item below.</Typography>
+    }
+
+    const handleToggle = async (itemId: string) => {
+        try {
+            await toggleItem({ listId, itemId }).unwrap()
+        } catch {
+            dispatch(snackbarShown({ message: 'Could not update the item.', severity: 'error' }))
+        }
+    }
+
+    const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+        if (!over) {
+            return
+        }
+
+        const positionUpdate = getShoppingItemPositionUpdate(
+            items,
+            String(active.id),
+            String(over.id),
+        )
+        if (!positionUpdate) {
+            return
+        }
+
+        try {
+            await updateItemPosition({ listId, ...positionUpdate }).unwrap()
+        } catch {
+            dispatch(snackbarShown({ message: 'Could not reorder the items.', severity: 'error' }))
+        }
+    }
+
     return (
-      <Typography color="text.secondary">
-        Nothing to buy here. Add an item below.
-      </Typography>
-    );
-  }
-
-  return (
-    <List>
-      {items.map((item) =>
-        !readOnly && item.id === editingItemId ? (
-          <ListItem key={item.id} disablePadding>
-            <EditItemForm
-              listId={listId}
-              item={item}
-              onDone={() => setEditingItemId(null)}
-            />
-          </ListItem>
-        ) : (
-          <ListItem
-            key={item.id}
-            sx={{
-              boxShadow: 2,
-              marginBottom: 0.5,
-              backgroundColor: (theme) =>
-                item.isChecked ? theme.palette.success.light : undefined,
-            }}
-            // dense
-            disablePadding
-            secondaryAction={
-              readOnly ? undefined : (
-                <Stack direction="row" spacing={1}>
-                  <IconButton
-                    sx={{
-                      boxShadow: 2,
-                    }}
-                    aria-label={`Edit ${item.name}`}
-                    onClick={() => setEditingItemId(item.id)}
-                  >
-                    <EditOutlinedIcon />
-                  </IconButton>
-                  <IconButton
-                    sx={{
-                      boxShadow: 2,
-                    }}
-                    aria-label={`Check ${item.name}`}
-                    onClick={() =>
-                      !readOnly && toggleItem({ listId, itemId: item.id })
-                    }
-                  >
-                    <CheckOutlinedIcon />
-                  </IconButton>
-                </Stack>
-              )
-            }
-          >
-            <ListItemButton
-              disabled={readOnly}
-              // dense
-              sx={{ pr: readOnly ? undefined : 16 }}
-            >
-              {/* <ListItemIcon>
-                                <Checkbox edge="start" checked={item.isChecked} tabIndex={-1} disableRipple />
-                            </ListItemIcon> */}
-              <ListItemText
-                primary={
-                  item.quantity === 1
-                    ? item.name
-                    : `${item.quantity} ${item.name}`
-                }
-                // secondary={[item.quantity, item.unit].filter(Boolean).join(' ')}
-              />
-            </ListItemButton>
-          </ListItem>
-        ),
-      )}
-    </List>
-  );
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={items.map((item) => item.id)} strategy={verticalListSortingStrategy}>
+                <List>
+                    {items.map((item) => (
+                        <SortableShoppingItem
+                            key={item.id}
+                            listId={listId}
+                            item={item}
+                            readOnly={readOnly}
+                            isEditing={!readOnly && item.id === editingItemId}
+                            isMutationPending={isMutationPending}
+                            onEdit={() => setEditingItemId(item.id)}
+                            onEditDone={() => setEditingItemId(null)}
+                            onToggle={() => handleToggle(item.id)}
+                        />
+                    ))}
+                </List>
+            </SortableContext>
+        </DndContext>
+    )
 }
-
-// TODO: support drag & drop reordering using SortOrder.

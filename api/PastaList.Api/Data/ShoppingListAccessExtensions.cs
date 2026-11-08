@@ -17,4 +17,15 @@ public static class ShoppingListAccessExtensions
 
     public static IQueryable<ShoppingList> AccessibleTo(this IQueryable<ShoppingList> query, Guid userId) =>
         query.Where(list => list.Members.Any(member => member.UserId == userId));
+
+    public static async Task LockForItemOrderingAsync(
+        this PastaListDbContext db,
+        Guid listId,
+        CancellationToken cancellationToken)
+    {
+        // The surrounding transaction holds this parent-row lock until ordering changes are committed.
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT 1 FROM pasta.shopping_lists WHERE \"Id\" = {listId} FOR UPDATE",
+            cancellationToken);
+    }
 }

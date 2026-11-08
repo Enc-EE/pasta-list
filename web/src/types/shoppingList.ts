@@ -73,5 +73,9 @@ export interface CreateShoppingListItemRequest {
 
 export type UpdateShoppingListItemRequest = CreateShoppingListItemRequest & {
     isChecked: boolean
-    sortOrder: number
+}
+
+export interface UpdateShoppingListItemPositionRequest {
+    previousItemId: string | null
+    nextItemId: string | null
 }

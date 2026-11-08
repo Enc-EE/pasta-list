@@ -118,27 +118,28 @@ as the allowed frontend origin; CSRF-protected mutations reject other origins.
 
 ## API surface
 
-| Method   | Route                                       | Purpose             |
-| -------- | ------------------------------------------- | ------------------- |
-| `GET`    | `/health`                                   | Liveness probe      |
-| `POST`   | `/api/auth/request-code`                    | Request login code  |
-| `POST`   | `/api/auth/verify`                          | Verify login code   |
-| `GET`    | `/api/auth/me`                              | Current session     |
-| `POST`   | `/api/auth/logout`                          | End session         |
-| `GET`    | `/api/lists?includeArchived=false`          | List summaries      |
-| `GET`    | `/api/lists/{id}`                           | One list with items |
-| `POST`   | `/api/lists`                                | Create a list       |
-| `PUT`    | `/api/lists/{id}`                           | Update a list       |
-| `DELETE` | `/api/lists/{id}`                           | Delete a list       |
-| `GET`    | `/api/lists/{listId}/members`               | List members        |
-| `POST`   | `/api/lists/{listId}/members`               | Invite a member     |
-| `PUT`    | `/api/lists/{listId}/members/{userId}`      | Change member role  |
-| `DELETE` | `/api/lists/{listId}/members/{userId}`      | Remove a member     |
-| `GET`    | `/api/lists/{listId}/items`                 | Items of a list     |
-| `POST`   | `/api/lists/{listId}/items`                 | Add an item         |
-| `PUT`    | `/api/lists/{listId}/items/{itemId}`        | Update an item      |
-| `PATCH`  | `/api/lists/{listId}/items/{itemId}/toggle` | Toggle checked      |
-| `DELETE` | `/api/lists/{listId}/items/{itemId}`        | Delete an item      |
+| Method   | Route                                         | Purpose             |
+| -------- | --------------------------------------------- | ------------------- |
+| `GET`    | `/health`                                     | Liveness probe      |
+| `POST`   | `/api/auth/request-code`                      | Request login code  |
+| `POST`   | `/api/auth/verify`                            | Verify login code   |
+| `GET`    | `/api/auth/me`                                | Current session     |
+| `POST`   | `/api/auth/logout`                            | End session         |
+| `GET`    | `/api/lists?includeArchived=false`            | List summaries      |
+| `GET`    | `/api/lists/{id}`                             | One list with items |
+| `POST`   | `/api/lists`                                  | Create a list       |
+| `PUT`    | `/api/lists/{id}`                             | Update a list       |
+| `DELETE` | `/api/lists/{id}`                             | Delete a list       |
+| `GET`    | `/api/lists/{listId}/members`                 | List members        |
+| `POST`   | `/api/lists/{listId}/members`                 | Invite a member     |
+| `PUT`    | `/api/lists/{listId}/members/{userId}`        | Change member role  |
+| `DELETE` | `/api/lists/{listId}/members/{userId}`        | Remove a member     |
+| `GET`    | `/api/lists/{listId}/items`                   | Items of a list     |
+| `POST`   | `/api/lists/{listId}/items`                   | Add an item         |
+| `PUT`    | `/api/lists/{listId}/items/{itemId}`          | Update an item      |
+| `PATCH`  | `/api/lists/{listId}/items/{itemId}/position` | Reorder an item     |
+| `PATCH`  | `/api/lists/{listId}/items/{itemId}/toggle`   | Toggle checked      |
+| `DELETE` | `/api/lists/{listId}/items/{itemId}`          | Delete an item      |
 
 OpenAPI document (Development): https://localhost:7208/openapi/v1.json
 Ready-made requests: [api/PastaList.Api/PastaList.Api.http](api/PastaList.Api/PastaList.Api.http)
@@ -149,7 +150,7 @@ Ready-made requests: [api/PastaList.Api/PastaList.Api.http](api/PastaList.Api/Pa
 api/PastaList.Api/
   Contracts/        DTOs - the public API shape
   Data/             DbContext, entity configurations, migrations, dev seeder
-  Domain/           EF entities
+  Domain/           EF entities and ordering rules
   Endpoints/        Minimal API route groups
   Mapping/          Entity -> DTO extensions
 database/
@@ -181,7 +182,7 @@ configuration through environment variables or a secret store.
 
 ## Roadmap / TODO
 
-- [ ] Drag & drop reordering of items
+- [x] Drag & drop reordering of items
 - [ ] PostgreSQL-backed integration tests for migrations and authorization queries
 - [ ] CI deployment/publish workflow
 - [ ] Persist theme preference in `localStorage`
@@ -191,7 +192,6 @@ configuration through environment variables or a secret store.
 - localization
 - icon
 - PWA
-- sort
 - checked on top (ordered by checked date)
 
 - delete account

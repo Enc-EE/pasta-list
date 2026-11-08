@@ -13,6 +13,7 @@ import type {
     ShoppingListItem,
     ShoppingListMember,
     ShoppingListSummary,
+    UpdateShoppingListItemPositionRequest,
     UpdateShoppingListItemRequest,
     UpdateShoppingListMemberRoleRequest,
     UpdateShoppingListRequest,
@@ -110,6 +111,49 @@ export const pastaListApi = createApi({
                 method: 'PUT',
                 body,
             }),
+            invalidatesTags: (_result, _error, { listId }) => [{ type: 'ShoppingList', id: listId }],
+        }),
+
+        updateItemPosition: builder.mutation<
+            void,
+            {
+                listId: string
+                itemId: string
+                body: UpdateShoppingListItemPositionRequest
+                orderedItemIds: string[]
+            }
+        >({
+            query: ({ listId, itemId, body }) => ({
+                url: `lists/${listId}/items/${itemId}/position`,
+                method: 'PATCH',
+                body,
+            }),
+            async onQueryStarted({ listId, orderedItemIds }, { dispatch, queryFulfilled }) {
+                const patch = dispatch(
+                    pastaListApi.util.updateQueryData('getList', listId, (draft) => {
+                        const itemsById = new Map(draft.items.map((item) => [item.id, item] as const))
+                        const reorderedItems: ShoppingListItem[] = []
+
+                        for (const id of orderedItemIds) {
+                            const item = itemsById.get(id)
+                            if (!item) {
+                                return
+                            }
+                            reorderedItems.push(item)
+                        }
+
+                        if (reorderedItems.length === draft.items.length) {
+                            draft.items = reorderedItems
+                        }
+                    }),
+                )
+
+                try {
+                    await queryFulfilled
+                } catch {
+                    patch.undo()
+                }
+            },
             invalidatesTags: (_result, _error, { listId }) => [{ type: 'ShoppingList', id: listId }],
         }),
 
@@ -217,6 +261,7 @@ export const {
     useDeleteListMutation,
     useCreateItemMutation,
     useUpdateItemMutation,
+    useUpdateItemPositionMutation,
     useToggleItemMutation,
     useDeleteItemMutation,
     useDeleteCheckedItemsMutation,

@@ -175,9 +175,18 @@ public static class ShoppingListEndpoints
             return Results.NotFound();
         }
 
-        var deleted = await db.ShoppingListItems
+        if (role == ShoppingListRole.Viewer)
+        {
+            return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Viewers cannot modify this list.");
+        }
+
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await db.LockForItemOrderingAsync(id, cancellationToken);
+
+        await db.ShoppingListItems
             .Where(i => i.ShoppingListId == id && i.IsChecked)
             .ExecuteDeleteAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Results.NoContent();
     }
