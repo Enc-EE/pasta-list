@@ -8,8 +8,8 @@ import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
-import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
+import { alpha } from '@mui/material/styles'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
@@ -60,6 +60,9 @@ function MealChip({ entry, canEdit, onDelete, onEdit }: MealChipProps) {
                 opacity: isDragging ? 0.4 : 1,
                 transform: CSS.Translate.toString(transform),
                 touchAction: canEdit ? 'none' : undefined,
+                maxWidth: '100%',
+                fontWeight: 500,
+                '& .MuiChip-label': { px: 1.25 },
             }}
         />
     )
@@ -120,14 +123,14 @@ function MealSlotSection({ date, slot, entries, canEdit, onAdd, onDelete, onEdit
             aria-label={`${slot} meals`}
             sx={{
                 borderRadius: 1,
-                p: 1,
+                p: 0.5,
                 bgcolor: isOver ? 'action.hover' : 'transparent',
                 outline: isOver ? '1px dashed' : 'none',
                 outlineColor: 'primary.main',
             }}
         >
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600 }}>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                <Typography variant="subtitle2" component="h3" sx={{ fontWeight: 600, color: 'text.secondary' }}>
                     {slot}
                 </Typography>
                 {canEdit && !isAdding && (
@@ -137,14 +140,8 @@ function MealSlotSection({ date, slot, entries, canEdit, onAdd, onDelete, onEdit
                 )}
             </Stack>
 
-            {entries.length === 0 && !isAdding && (
-                <Typography variant="body2" color="text.secondary">
-                    No meals planned yet.
-                </Typography>
-            )}
-
             {entries.length > 0 && (
-                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, pt: 0.5 }}>
+                <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, pt: 0.25 }}>
                     {entries.map((entry) => (
                         <MealChip
                             key={entry.id}
@@ -164,8 +161,8 @@ function MealSlotSection({ date, slot, entries, canEdit, onAdd, onDelete, onEdit
                     onKeyDown={handleKeyDown}
                     aria-label={`Add ${slot.toLowerCase()} meal`}
                     direction="row"
-                    spacing={1}
-                    sx={{ alignItems: 'center', mt: 1 }}
+                    spacing={0.5}
+                    sx={{ alignItems: 'center', mt: 0.5 }}
                 >
                     <TextField
                         label={`${slot} meal`}
@@ -176,11 +173,20 @@ function MealSlotSection({ date, slot, entries, canEdit, onAdd, onDelete, onEdit
                         autoFocus
                         fullWidth
                     />
-                    <Button type="submit" variant="contained" disabled={isSaving || !name.trim()}>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        size="small"
+                        disabled={isSaving || !name.trim()}
+                    >
                         Add
                     </Button>
-                    <IconButton aria-label={`Stop adding ${slot.toLowerCase()} meals`} onClick={cancel}>
-                        <CloseIcon />
+                    <IconButton
+                        size="small"
+                        aria-label={`Stop adding ${slot.toLowerCase()} meals`}
+                        onClick={cancel}
+                    >
+                        <CloseIcon fontSize="small" />
                     </IconButton>
                 </Stack>
             )}
@@ -190,23 +196,64 @@ function MealSlotSection({ date, slot, entries, canEdit, onAdd, onDelete, onEdit
 
 export default function MealDayCard({ day, entries, canEdit, onAdd, onDelete, onEdit }: MealDayCardProps) {
     return (
-        <Paper
+        <Box
             component="section"
-            variant="outlined"
             aria-label={`${day.weekday}, ${day.dateLabel}`}
-            sx={{ p: 2 }}
+            sx={{
+                px: { xs: 1.5, sm: 2 },
+                py: 1,
+                bgcolor: 'background.paper',
+                backgroundImage: day.isToday
+                    ? (theme) => `linear-gradient(${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.primary.main, 0.08)})`
+                    : 'none',
+                boxShadow: day.isToday
+                    ? (theme) => `inset 3px 0 0 ${theme.palette.primary.main}`
+                    : 'none',
+            }}
         >
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline', flexWrap: 'wrap', gap: 0.5 }}>
-                <Typography variant="h2">{day.weekday}</Typography>
-                <Typography variant="body1" color="text.secondary">
-                    {day.dateLabel}
-                </Typography>
-                {day.isToday && <Chip size="small" label="Today" color="primary" />}
-            </Stack>
+            <Box
+                sx={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1,
+                    mx: { xs: -1.5, sm: -2 },
+                    px: { xs: 1.5, sm: 2 },
+                    pt: 0.5,
+                    pb: 0.5,
+                    bgcolor: 'background.paper',
+                    backgroundImage: day.isToday
+                        ? (theme) => `linear-gradient(${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.primary.main, 0.08)})`
+                        : 'none',
+                    boxShadow: day.isToday
+                        ? (theme) => `inset 3px 0 0 ${theme.palette.primary.main}`
+                        : 'none',
+                }}
+            >
+                <Stack direction="row" spacing={0.5} sx={{ alignItems: 'baseline', flexWrap: 'wrap', gap: 0.5 }}>
+                    <Typography
+                        variant="subtitle1"
+                        component="h2"
+                        sx={{ fontWeight: day.isToday ? 700 : 600 }}
+                    >
+                        {day.weekday}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                        {day.dateLabel}
+                    </Typography>
+                    {day.isToday && (
+                        <Chip
+                            size="small"
+                            label="Today"
+                            color="primary"
+                            sx={{ height: 20, '& .MuiChip-label': { px: 0.75, fontSize: '0.7rem' } }}
+                        />
+                    )}
+                </Stack>
 
-            <Divider sx={{ my: 1.5 }} />
+                <Divider sx={{ mt: 0.5 }} />
+            </Box>
 
-            <Stack spacing={1.5}>
+            <Stack spacing={0.5}>
                 <MealSlotSection
                     date={day.date}
                     slot="Lunch"
@@ -226,6 +273,6 @@ export default function MealDayCard({ day, entries, canEdit, onAdd, onDelete, on
                     onEdit={onEdit}
                 />
             </Stack>
-        </Paper>
+        </Box>
     )
 }

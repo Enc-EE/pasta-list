@@ -22,7 +22,7 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { useAppDispatch } from '../app/hooks'
 import EditMealDialog from '../components/mealPlan/EditMealDialog'
@@ -82,12 +82,13 @@ export default function MealPlanPage() {
 
     const scrollContainerRef = useRef<HTMLDivElement>(null)
     const didInitialScroll = useRef(false)
+    const [listHeight, setListHeight] = useState<number | null>(null)
 
     const virtualizer = useVirtualizer({
         count: days.length,
         getScrollElement: () => scrollContainerRef.current,
-        estimateSize: () => 180,
-        overscan: 6,
+        estimateSize: () => 130,
+        overscan: 8,
         getItemKey: (index) => days[index].date,
     })
 
@@ -109,6 +110,22 @@ export default function MealPlanPage() {
         virtualizer.scrollToIndex(todayIndex, { align: 'start' })
         didInitialScroll.current = true
     }, [plan, todayIndex, virtualizer])
+
+    useLayoutEffect(() => {
+        const box = scrollContainerRef.current
+        if (!box) {
+            return
+        }
+
+        const updateHeight = () => {
+            const top = box.getBoundingClientRect().top + window.scrollY
+            setListHeight(Math.max(0, window.innerHeight - top - 1))
+        }
+
+        updateHeight()
+        window.addEventListener('resize', updateHeight)
+        return () => window.removeEventListener('resize', updateHeight)
+    }, [plan])
 
     const create = async () => {
         try {
@@ -195,7 +212,7 @@ export default function MealPlanPage() {
 
     if (isLoading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                 <CircularProgress />
             </Box>
         )
@@ -203,16 +220,16 @@ export default function MealPlanPage() {
 
     if (isError && isNotFound(error)) {
         return (
-            <Stack spacing={3}>
-                <Typography variant="h1">Meal plan</Typography>
-                <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography variant="h2" gutterBottom>
+            <Stack spacing={2}>
+                <Typography variant="h2" component="h1">Meal plan</Typography>
+                <Paper variant="outlined" sx={{ p: { xs: 2, sm: 4 }, textAlign: 'center' }}>
+                    <Typography variant="h6" component="h2" gutterBottom>
                         Plan your lunches and dinners
                     </Typography>
-                    <Typography color="text.secondary" sx={{ mb: 3 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         Create a meal plan and share it with the people you cook for.
                     </Typography>
-                    <Button variant="contained" onClick={create} disabled={isCreating}>
+                    <Button variant="contained" size="small" onClick={create} disabled={isCreating}>
                         Create meal plan
                     </Button>
                 </Paper>
@@ -227,39 +244,49 @@ export default function MealPlanPage() {
     const canEdit = plan.role !== 'Viewer'
 
     return (
-        <Stack spacing={3}>
+        <Stack spacing={{ xs: 1, sm: 1.5 }} sx={{ mb: -4 }}>
             <Stack
                 direction="row"
                 spacing={1}
-                sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}
+                sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: { xs: 0.5, sm: 1 } }}
             >
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                    <Typography variant="h1">Meal plan</Typography>
+                <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                    <Typography variant="h2" component="h1">Meal plan</Typography>
                     <Chip
                         size="small"
                         label={plan.role}
                         color={plan.role === 'Owner' ? 'primary' : 'default'}
                     />
                 </Stack>
-                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} sx={{ flexWrap: 'wrap' }}>
                     <Button
+                        size="small"
                         startIcon={<TodayIcon />}
                         onClick={() => virtualizer.scrollToIndex(todayIndex, { align: 'start' })}
                     >
                         Today
                     </Button>
-                    <Button startIcon={<GroupIcon />} onClick={() => setMembersOpen(true)}>
+                    <Button size="small" startIcon={<GroupIcon />} onClick={() => setMembersOpen(true)}>
                         Members
                     </Button>
                     {plan.role === 'Owner' && (
-                        <Button color="error" startIcon={<DeleteOutlineIcon />} onClick={removePlan}>
+                        <Button
+                            size="small"
+                            color="error"
+                            startIcon={<DeleteOutlineIcon />}
+                            onClick={removePlan}
+                        >
                             Delete
                         </Button>
                     )}
                 </Stack>
             </Stack>
 
-            {!canEdit && <Alert severity="info">You have view-only access to this meal plan.</Alert>}
+            {!canEdit && (
+                <Alert severity="info" sx={{ py: 0.5 }}>
+                    You have view-only access to this meal plan.
+                </Alert>
+            )}
 
             <DndContext
                 sensors={sensors}
@@ -268,49 +295,52 @@ export default function MealPlanPage() {
                 onDragEnd={handleDragEnd}
                 onDragCancel={() => setActiveEntry(null)}
             >
-                <Box
-                    ref={scrollContainerRef}
-                    sx={{
-                        height: 'calc(100dvh - 300px)',
-                        minHeight: 320,
-                        overflowY: 'auto',
-                        pr: { xs: 0, sm: 1 },
-                    }}
-                >
-                    <Box sx={{ height: virtualizer.getTotalSize(), position: 'relative', width: '100%' }}>
-                        {virtualizer.getVirtualItems().map((virtualRow) => {
-                            const day = days[virtualRow.index]
-                            if (!day) {
-                                return null
-                            }
+                <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
+                    <Box
+                        ref={scrollContainerRef}
+                        sx={{
+                            height: listHeight ?? 'calc(100dvh - 220px)',
+                            overflowY: 'auto',
+                            overscrollBehavior: 'contain',
+                        }}
+                    >
+                        <Box sx={{ height: virtualizer.getTotalSize(), position: 'relative', width: '100%' }}>
+                            {virtualizer.getVirtualItems().map((virtualRow) => {
+                                const day = days[virtualRow.index]
+                                if (!day) {
+                                    return null
+                                }
 
-                            return (
-                                <Box
-                                    key={virtualRow.key}
-                                    ref={virtualizer.measureElement}
-                                    data-index={virtualRow.index}
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        width: '100%',
-                                        pb: 2,
-                                        transform: `translateY(${virtualRow.start}px)`,
-                                    }}
-                                >
-                                    <MealDayCard
-                                        day={day}
-                                        entries={entriesByDate.get(day.date) ?? []}
-                                        canEdit={canEdit}
-                                        onAdd={addEntry}
-                                        onDelete={removeEntry}
-                                        onEdit={setEditingEntry}
-                                    />
-                                </Box>
-                            )
-                        })}
+                                return (
+                                    <Box
+                                        key={virtualRow.key}
+                                        ref={virtualizer.measureElement}
+                                        data-index={virtualRow.index}
+                                        sx={{
+                                            position: 'absolute',
+                                            top: virtualRow.start,
+                                            left: 0,
+                                            width: '100%',
+                                            borderBottom: virtualRow.index < days.length - 1
+                                                ? '1px solid'
+                                                : 'none',
+                                            borderColor: 'divider',
+                                        }}
+                                    >
+                                        <MealDayCard
+                                            day={day}
+                                            entries={entriesByDate.get(day.date) ?? []}
+                                            canEdit={canEdit}
+                                            onAdd={addEntry}
+                                            onDelete={removeEntry}
+                                            onEdit={setEditingEntry}
+                                        />
+                                    </Box>
+                                )
+                            })}
+                        </Box>
                     </Box>
-                </Box>
+                </Paper>
 
                 <DragOverlay dropAnimation={null}>
                     {activeEntry ? <Chip label={activeEntry.name} color="primary" /> : null}
