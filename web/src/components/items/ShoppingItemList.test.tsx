@@ -57,9 +57,10 @@ describe("ShoppingItemList", () => {
       <ShoppingItemList listId="list-1" items={[{ ...item, quantity }]} />,
     );
 
-    expect(screen.getByRole("button", { name: label })).toHaveTextContent(
-      label,
-    );
+    expect(screen.getByText(label)).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: label }),
+    ).not.toBeInTheDocument();
   });
 
   it("edits an item inline and keeps fields the form does not show", async () => {
@@ -93,6 +94,24 @@ describe("ShoppingItemList", () => {
     ).toBeInTheDocument();
   });
 
+  it("closes the edit form when switching to shopping mode", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <ShoppingItemList listId="list-1" items={[item]} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Edit Penne" }));
+    expect(screen.getByRole("textbox", { name: "Item" })).toBeInTheDocument();
+
+    rerender(
+      <ShoppingItemList listId="list-1" items={[item]} mode="shopping" />,
+    );
+
+    expect(
+      screen.queryByRole("textbox", { name: "Item" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("hides edit controls for read-only lists", () => {
     render(<ShoppingItemList listId="list-1" items={[item]} readOnly />);
 
@@ -101,6 +120,30 @@ describe("ShoppingItemList", () => {
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Reorder Penne" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows only checking controls in shopping mode", () => {
+    render(
+      <ShoppingItemList listId="list-1" items={[item]} mode="shopping" />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Check Penne" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Edit Penne" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Reorder Penne" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides checking controls in edit mode", () => {
+    render(<ShoppingItemList listId="list-1" items={[item]} />);
+
+    expect(
+      screen.queryByRole("button", { name: "Check Penne" }),
     ).not.toBeInTheDocument();
   });
 
@@ -185,7 +228,9 @@ describe("ShoppingItemList", () => {
   it("checks an item through the shared mutation hook", async () => {
     toggleItem.mockReturnValue({ unwrap: () => Promise.resolve() });
     const user = userEvent.setup();
-    render(<ShoppingItemList listId="list-1" items={[item]} />);
+    render(
+      <ShoppingItemList listId="list-1" items={[item]} mode="shopping" />,
+    );
 
     await user.click(screen.getByRole("button", { name: "Check Penne" }));
 
@@ -201,6 +246,14 @@ describe("ShoppingItemList", () => {
 
     expect(screen.getByRole("button", { name: "Reorder Penne" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Edit Penne" })).toBeDisabled();
+  });
+
+  it("disables checking while reordering is pending", () => {
+    mutationState.isReordering = true;
+    render(
+      <ShoppingItemList listId="list-1" items={[item]} mode="shopping" />,
+    );
+
     expect(screen.getByRole("button", { name: "Check Penne" })).toBeDisabled();
   });
 

@@ -2,7 +2,9 @@ import AddIcon from '@mui/icons-material/Add'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined'
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import GroupIcon from '@mui/icons-material/Group'
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -25,7 +27,7 @@ import {
 } from '../features/api/pastaListApi'
 import { snackbarShown } from '../features/ui/uiSlice'
 import AddItemForm from '../components/items/AddItemForm'
-import ShoppingItemList from '../components/items/ShoppingItemList'
+import ShoppingItemList, { type ShoppingMode } from '../components/items/ShoppingItemList'
 import ListMembersDialog from '../components/lists/ListMembersDialog'
 
 export default function ListDetailPage() {
@@ -38,8 +40,13 @@ export default function ListDetailPage() {
     const [deleteCheckedItems] = useDeleteCheckedItemsMutation()
     const [membersDialogOpen, setMembersDialogOpen] = useState(false)
     const [isAddingItems, setIsAddingItems] = useState(false)
+    const [mode, setMode] = useState<ShoppingMode>('edit')
     const addFormRef = useRef<HTMLDivElement>(null)
     const itemCount = list?.items.length
+
+    useEffect(() => {
+        setMode('edit')
+    }, [listId])
 
     // The list refetches after an add, so the form moves down only once new data arrives.
     useEffect(() => {
@@ -63,6 +70,7 @@ export default function ListDetailPage() {
     const visibleItems = list.items
     const canEdit = list.role !== 'Viewer'
     const isOwner = list.role === 'Owner'
+    const isShopping = mode === 'shopping'
 
     const removeList = async () => {
         if (!window.confirm(`Delete "${list.name}"? This cannot be undone.`)) {
@@ -94,6 +102,11 @@ export default function ListDetailPage() {
         }
     }
 
+    const toggleShoppingMode = () => {
+        setIsAddingItems(false)
+        setMode((current) => (current === 'edit' ? 'shopping' : 'edit'))
+    }
+
     return (
         <Stack spacing={3}>
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
@@ -116,6 +129,7 @@ export default function ListDetailPage() {
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                     <Typography variant="h1">{list.name}</Typography>
                     <Chip size="small" label={list.role} color={isOwner ? 'primary' : 'default'} />
+                    {isShopping && <Chip size="small" label="Shopping" color="success" />}
                 </Stack>
                 {list.description && (
                     <Typography variant="body1" color="text.secondary">
@@ -124,13 +138,24 @@ export default function ListDetailPage() {
                 )}
             </Box>
 
+            {canEdit && (
+                <Button
+                    variant={isShopping ? 'outlined' : 'contained'}
+                    startIcon={isShopping ? <EditOutlinedIcon /> : <ShoppingCartOutlinedIcon />}
+                    onClick={toggleShoppingMode}
+                    sx={{ alignSelf: 'flex-start' }}
+                >
+                    {isShopping ? 'Finish shopping' : 'Start shopping'}
+                </Button>
+            )}
+
             {!canEdit && <Alert severity="info">You have view-only access to this list.</Alert>}
 
             <Divider />
 
-            <ShoppingItemList listId={list.id} items={visibleItems} readOnly={!canEdit} />
+            <ShoppingItemList listId={list.id} items={visibleItems} readOnly={!canEdit} mode={mode} />
  
-            {canEdit && (
+            {canEdit && !isShopping && (
                 <Box sx={{ position: 'fixed', right: 24, bottom: 24, zIndex: 10 }}>
                     {isAddingItems ? (
                         <Paper

@@ -5,17 +5,18 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import IconButton from '@mui/material/IconButton'
 import ListItem from '@mui/material/ListItem'
-import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import Stack from '@mui/material/Stack'
 
 import type { ShoppingListItem } from '../../types/shoppingList'
 import EditItemForm from './EditItemForm'
+import type { ShoppingMode } from './ShoppingItemList'
 
 export interface SortableShoppingItemProps {
     listId: string
     item: ShoppingListItem
     readOnly: boolean
+    mode: ShoppingMode
     isEditing: boolean
     isMutationPending: boolean
     onEdit: () => void
@@ -27,6 +28,7 @@ export default function SortableShoppingItem({
     listId,
     item,
     readOnly,
+    mode,
     isEditing,
     isMutationPending,
     onEdit,
@@ -35,7 +37,7 @@ export default function SortableShoppingItem({
 }: SortableShoppingItemProps) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: item.id,
-        disabled: readOnly || isEditing || isMutationPending,
+        disabled: readOnly || mode === 'shopping' || isEditing || isMutationPending,
     })
 
     if (isEditing) {
@@ -65,32 +67,46 @@ export default function SortableShoppingItem({
                 zIndex: isDragging ? 1 : undefined,
             }}
             disablePadding
-            secondaryAction={
-                readOnly ? undefined : (
-                    <Stack direction="row" spacing={1}>
-                        <IconButton
-                            {...attributes}
-                            {...listeners}
-                            disabled={isMutationPending}
-                            sx={{
-                                boxShadow: 2,
-                                cursor: isDragging ? 'grabbing' : 'grab',
-                                touchAction: 'none',
-                            }}
-                            aria-label={`Reorder ${item.name}`}
-                        >
-                            <DragIndicatorIcon />
-                        </IconButton>
-                        <IconButton
-                            sx={{
-                                boxShadow: 2,
-                            }}
-                            aria-label={`Edit ${item.name}`}
-                            disabled={isMutationPending}
-                            onClick={onEdit}
-                        >
-                            <EditOutlinedIcon />
-                        </IconButton>
+        >
+            <ListItemText
+                primary={item.quantity === 1 ? item.name : `${item.quantity} ${item.name}`}
+                slotProps={{ primary: { noWrap: true } }}
+                sx={{ px: 2, py: 1 }}
+            />
+            {readOnly ? null : (
+                <Stack direction="row" spacing={1} sx={{ pr: 2, flexShrink: 0 }}>
+                    {mode === 'edit' ? (
+                        <>
+                            <IconButton
+                                {...attributes}
+                                {...listeners}
+                                disabled={isMutationPending}
+                                disableRipple
+                                sx={{
+                                    color: 'text.disabled',
+                                    cursor: isDragging ? 'grabbing' : 'grab',
+                                    touchAction: 'none',
+                                    '&:hover': {
+                                        backgroundColor: 'transparent',
+                                        color: 'text.secondary',
+                                    },
+                                }}
+                                aria-label={`Reorder ${item.name}`}
+                            >
+                                <DragIndicatorIcon />
+                            </IconButton>
+                            <IconButton
+                                sx={{
+                                    boxShadow: 2,
+                                }}
+                                aria-label={`Edit ${item.name}`}
+                                disabled={isMutationPending}
+                                onClick={onEdit}
+                            >
+                                <EditOutlinedIcon />
+                            </IconButton>
+                        </>
+                    ) : (
                         <IconButton
                             sx={{
                                 boxShadow: 2,
@@ -101,13 +117,9 @@ export default function SortableShoppingItem({
                         >
                             <CheckOutlinedIcon />
                         </IconButton>
-                    </Stack>
-                )
-            }
-        >
-            <ListItemButton disabled={readOnly} sx={{ pr: readOnly ? undefined : 20 }}>
-                <ListItemText primary={item.quantity === 1 ? item.name : `${item.quantity} ${item.name}`} />
-            </ListItemButton>
+                    )}
+                </Stack>
+            )}
         </ListItem>
     )
 }

@@ -14,7 +14,7 @@ import {
 } from '@dnd-kit/sortable'
 import List from '@mui/material/List'
 import Typography from '@mui/material/Typography'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useAppDispatch } from '../../app/hooks'
 import {
@@ -26,13 +26,21 @@ import type { ShoppingListItem } from '../../types/shoppingList'
 import SortableShoppingItem from './SortableShoppingItem'
 import { getShoppingItemPositionUpdate } from './shoppingItemOrdering'
 
+export type ShoppingMode = 'edit' | 'shopping'
+
 export interface ShoppingItemListProps {
     listId: string
     items: ShoppingListItem[]
     readOnly?: boolean
+    mode?: ShoppingMode
 }
 
-export default function ShoppingItemList({ listId, items, readOnly = false }: ShoppingItemListProps) {
+export default function ShoppingItemList({
+    listId,
+    items,
+    readOnly = false,
+    mode = 'edit',
+}: ShoppingItemListProps) {
     const dispatch = useAppDispatch()
     const [updateItemPosition, { isLoading: isReordering }] = useUpdateItemPositionMutation()
     const [toggleItem, { isLoading: isToggling }] = useToggleItemMutation()
@@ -42,6 +50,12 @@ export default function ShoppingItemList({ listId, items, readOnly = false }: Sh
         useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
     )
+
+    useEffect(() => {
+        if (mode === 'shopping') {
+            setEditingItemId(null)
+        }
+    }, [mode])
 
     if (items.length === 0) {
         return <Typography color="text.secondary">Nothing to buy here. Add an item below.</Typography>
@@ -56,7 +70,7 @@ export default function ShoppingItemList({ listId, items, readOnly = false }: Sh
     }
 
     const handleDragEnd = async ({ active, over }: DragEndEvent) => {
-        if (!over) {
+        if (!over || mode === 'shopping') {
             return
         }
 
@@ -86,7 +100,8 @@ export default function ShoppingItemList({ listId, items, readOnly = false }: Sh
                             listId={listId}
                             item={item}
                             readOnly={readOnly}
-                            isEditing={!readOnly && item.id === editingItemId}
+                            mode={mode}
+                            isEditing={!readOnly && mode === 'edit' && item.id === editingItemId}
                             isMutationPending={isMutationPending}
                             onEdit={() => setEditingItemId(item.id)}
                             onEditDone={() => setEditingItemId(null)}
